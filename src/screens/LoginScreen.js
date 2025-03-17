@@ -33,7 +33,7 @@ export default function Login({ navigation }) {
       <View style={styles.header}>
         <Text style={styles.headerText}>Página Login</Text>
       </View>
-      <View style={styles.formWrapper}>
+      <View style={styles.body}>
         <Image source={require("../img/logo-senai1.png")} style={styles.logo} />
         <TextInput 
           style={styles.input}
@@ -55,8 +55,8 @@ export default function Login({ navigation }) {
         <TouchableOpacity onPress={handleLogin} style={styles.button}>
           <Text style={styles.buttonText}>ENTRAR</Text>
         </TouchableOpacity>
-        <Text style={styles.registerText}>
-          Não tem conta?  <Text style={styles.registerLink} onPress={() => navigation.navigate("Cadastro")}>
+        <Text style={styles.naoPossuiConta}>
+          Não tem conta?  <Text style={styles.naoPossuiContaLink} onPress={() => navigation.navigate("Cadastro")}>
           Cadastre-se
           </Text>
         </Text>
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: "bold",
   },
-  formWrapper: {
+  body: {
     width: "60%",
     backgroundColor: "#fff",
     padding: 20,
@@ -120,11 +120,11 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
   },
-  registerText: {
+  naoPossuiConta: {
     marginTop: 10,
     fontSize: 14,
   },
-  registerLink: {
+  naoPossuiContaLink: {
     textDecorationLine: "underline",
     color: "#D32F2F",
     fontWeight: "bold",

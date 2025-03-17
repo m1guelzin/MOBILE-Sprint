@@ -36,7 +36,7 @@ export default function Cadastro({ navigation }) {
       <View style={styles.header}>
         <Text style={styles.headerText}>Página Cadastro</Text>
       </View>
-      <View style={styles.formWrapper}>
+      <View style={styles.body}>
         <Image source={require("../img/logo-senai1.png")} style={styles.logo} />
         <TextInput 
           style={styles.input}
@@ -72,6 +72,11 @@ export default function Cadastro({ navigation }) {
         <TouchableOpacity onPress={handleCadastro} style={styles.button}>
           <Text style={styles.buttonText}>CADASTRAR</Text>
         </TouchableOpacity>
+        <Text style={styles.Possuiconta}>
+          Ja tem conta?  <Text style={styles.PossuicontaLink} onPress={() => navigation.navigate("Login")}>
+          Login
+          </Text>
+          </Text>
       </View>
       <View style={styles.footer}>
         <Text style={styles.footerText}>SENAI Franca-SP</Text>
@@ -100,7 +105,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: "bold",
   },
-  formWrapper: {
+  body: {
     width: "60%",
     backgroundColor: "#fff",
     padding: 20,
@@ -132,11 +137,11 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
   },
-  registerText: {
+  Possuiconta: {
     marginTop: 10,
     fontSize: 14,
   },
-  registerLink: {
+  PossuicontaLink: {
     textDecorationLine: "underline",
     color: "#D32F2F",
     fontWeight: "bold",
@@ -153,4 +158,5 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: "bold",
   },
+
 });
