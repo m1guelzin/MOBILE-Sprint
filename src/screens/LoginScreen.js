@@ -39,8 +39,10 @@ export default function Login({ navigation }) {
           style={styles.input}
           placeholder="CPF"
           value={usuario.cpf}
+          keyboardType="numeric" // Exibe apenas o teclado numérico
+          maxLength={11} // CPF tem 11 dígitos
           onChangeText={(value) => {
-            setUser({ ...usuario, cpf: value });
+            setUser({ ...usuario, cpf: value.replace(/[^0-9]/g, "") });
           }}
         />
         <TextInput

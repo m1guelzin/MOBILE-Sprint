@@ -61,13 +61,21 @@ export default function Cadastro({ navigation }) {
           style={styles.input}
           placeholder="CPF"
           value={user.cpf}
-          onChangeText={(value) => setUser({ ...user, cpf: value })}
+          keyboardType="numeric" // Exibe apenas o teclado numérico
+          maxLength={11} // CPF tem 11 dígitos
+          onChangeText={(value) => {
+            setUser({ ...user, cpf: value.replace(/[^0-9]/g, "") });
+          }}
         />
         <TextInput
           style={styles.input}
           placeholder="TELEFONE"
           value={user.telefone}
-          onChangeText={(value) => setUser({ ...user, telefone: value })}
+          keyboardType="numeric" // Exibe apenas o teclado numérico
+          maxLength={11} // CPF tem 11 dígitos
+          onChangeText={(value) => {
+            setUser({ ...user, telefone: value.replace(/[^0-9]/g, "") });
+          }}
         />
         <TouchableOpacity onPress={handleCadastro} style={styles.button}>
           <Text style={styles.buttonText}>CADASTRAR</Text>
