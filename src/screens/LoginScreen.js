@@ -82,8 +82,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#ccc",
     paddingVertical: 40,
     alignItems: "center",
-    marginTop: -270,
-    marginBottom: 230,
+    marginTop: -400,
+    marginBottom: 180,
     top: 0,
   },
   headerText: {
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   },
   body: {
     width: "60%",
-    backgroundColor: "#fff",
+    backgroundColor: "white",
     padding: 20,
     borderRadius: 20,
     alignItems: "center",
@@ -136,8 +136,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#ccc",
     paddingVertical: 40,
     alignItems: "center",
-  marginTop:120,
-    marginBottom: -265,
+  marginTop:190,
+    marginBottom: -395,
   },
   footerText: {
     fontSize: 30,
