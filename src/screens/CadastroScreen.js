@@ -6,10 +6,10 @@ import {
   TouchableOpacity,
   Alert,
   StyleSheet,
-  Image
+  Image,
 } from "react-native";
 import api from "../axios/axios";
-import {Ionicons} from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function Cadastro({ navigation }) {
   const [usuario, setUser] = useState({
@@ -18,7 +18,7 @@ export default function Cadastro({ navigation }) {
     senha: "",
     cpf: "",
     telefone: "",
-    showPassword:true,
+    showPassword: true,
   });
 
   async function handleCadastro() {
@@ -40,35 +40,40 @@ export default function Cadastro({ navigation }) {
       </View>
       <View style={styles.body}>
         <Image source={require("../img/logo-senai1.png")} style={styles.logo} />
-        <TextInput 
+        <TextInput
           style={styles.input}
           placeholder="NOME"
           value={usuario.nome}
           onChangeText={(value) => setUser({ ...usuario, nome: value })}
         />
-        <TextInput 
+        <TextInput
           style={styles.input}
           placeholder="EMAIL"
           value={usuario.email}
           onChangeText={(value) => setUser({ ...usuario, email: value })}
         />
         <View style={styles.passwordContainer}>
-  <TextInput
-    style={styles.passwordInput}
-    placeholder="SENHA"
-    secureTextEntry={usuario.showPassword}
-    value={usuario.senha}
-    onChangeText={(value) => {
-      setUser({ ...usuario, senha: value });
-    }}
-  />
-  <TouchableOpacity
-    onPress={() => setUser({ ...usuario, showPassword: !usuario.showPassword })}
-    
-  >
-    <Ionicons name={usuario.showPassword ? "eye-off" : "eye"} size={24} color="gray" />
-  </TouchableOpacity>
-</View>
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="SENHA"
+            secureTextEntry={usuario.showPassword}
+            value={usuario.senha}
+            onChangeText={(value) => {
+              setUser({ ...usuario, senha: value });
+            }}
+          />
+          <TouchableOpacity
+            onPress={() =>
+              setUser({ ...usuario, showPassword: !usuario.showPassword })
+            }
+          >
+            <Ionicons
+              name={usuario.showPassword ? "eye-off" : "eye"}
+              size={24}
+              color="gray"
+            />
+          </TouchableOpacity>
+        </View>
         <TextInput
           style={styles.input}
           placeholder="CPF"
@@ -93,10 +98,14 @@ export default function Cadastro({ navigation }) {
           <Text style={styles.buttonText}>CADASTRAR</Text>
         </TouchableOpacity>
         <Text style={styles.Possuiconta}>
-          Ja tem conta?  <Text style={styles.PossuicontaLink} onPress={() => navigation.navigate("Login")}>
-          Login
+          Ja tem conta?{" "}
+          <Text
+            style={styles.PossuicontaLink}
+            onPress={() => navigation.navigate("Login")}
+          >
+            Login
           </Text>
-          </Text>
+        </Text>
       </View>
       <View style={styles.footer}>
         <Text style={styles.footerText}>SENAI Franca-SP</Text>
@@ -136,7 +145,6 @@ const styles = StyleSheet.create({
   logo: {
     width: 250,
     height: 100,
-
   },
   input: {
     width: "100%",
@@ -171,8 +179,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#ccc",
     paddingVertical: 40,
     alignItems: "center",
-  marginTop:88
-,    marginBottom: -245,
+    marginTop: 88,
+    marginBottom: -245,
   },
   footerText: {
     fontSize: 30,

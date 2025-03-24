@@ -2,8 +2,6 @@ import Login from "./screens/LoginScreen";
 import Cadastro from "./screens/CadastroScreen";
 import Home from "./screens/HomeScreen";
 import TelaInicial from "./screens/Telainicial";
-
-
 import { NavigationContainer } from "@react-navigation/native"
 import { createStackNavigator } from "@react-navigation/stack"
 

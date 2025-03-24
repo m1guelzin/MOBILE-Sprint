@@ -6,16 +6,16 @@ import {
   TouchableOpacity,
   Alert,
   StyleSheet,
-  Image
+  Image,
 } from "react-native";
 import api from "../axios/axios";
-import {Ionicons} from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function Login({ navigation }) {
   const [usuario, setUser] = useState({
     cpf: "",
     senha: "",
-    showPassword:true,
+    showPassword: true,
   });
 
   async function handleLogin() {
@@ -37,7 +37,7 @@ export default function Login({ navigation }) {
       </View>
       <View style={styles.body}>
         <Image source={require("../img/logo-senai1.png")} style={styles.logo} />
-        <TextInput 
+        <TextInput
           style={styles.input}
           placeholder="CPF"
           value={usuario.cpf}
@@ -47,29 +47,38 @@ export default function Login({ navigation }) {
             setUser({ ...usuario, cpf: value.replace(/[^0-9]/g, "") });
           }}
         />
-         <View style={styles.passwordContainer}>
-  <TextInput
-    style={styles.passwordInput}
-    placeholder="SENHA"
-    secureTextEntry={usuario.showPassword}
-    value={usuario.senha}
-    onChangeText={(value) => {
-      setUser({ ...usuario, senha: value });
-    }}
-  />
-  <TouchableOpacity
-    onPress={() => setUser({ ...usuario, showPassword: !usuario.showPassword })}
-    
-  >
-    <Ionicons name={usuario.showPassword ? "eye-off" : "eye"} size={24} color="gray" />
-  </TouchableOpacity>
-</View>
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="SENHA"
+            secureTextEntry={usuario.showPassword}
+            value={usuario.senha}
+            onChangeText={(value) => {
+              setUser({ ...usuario, senha: value });
+            }}
+          />
+          <TouchableOpacity
+            onPress={() =>
+              setUser({ ...usuario, showPassword: !usuario.showPassword })
+            }
+          >
+            <Ionicons
+              name={usuario.showPassword ? "eye-off" : "eye"}
+              size={24}
+              color="gray"
+            />
+          </TouchableOpacity>
+        </View>
         <TouchableOpacity onPress={handleLogin} style={styles.button}>
           <Text style={styles.buttonText}>ENTRAR</Text>
         </TouchableOpacity>
         <Text style={styles.naoPossuiConta}>
-          Não tem conta?  <Text style={styles.naoPossuiContaLink} onPress={() => navigation.navigate("Cadastro")}>
-          Cadastre-se
+          Não tem conta?{" "}
+          <Text
+            style={styles.naoPossuiContaLink}
+            onPress={() => navigation.navigate("Cadastro")}
+          >
+            Cadastre-se
           </Text>
         </Text>
       </View>
@@ -111,7 +120,6 @@ const styles = StyleSheet.create({
   logo: {
     width: 250,
     height: 100,
-
   },
   input: {
     width: "100%",
@@ -146,7 +154,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ccc",
     paddingVertical: 40,
     alignItems: "center",
-  marginTop:190,
+    marginTop: 190,
     marginBottom: -395,
   },
   footerText: {
