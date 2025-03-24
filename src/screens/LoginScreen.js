@@ -9,11 +9,13 @@ import {
   Image
 } from "react-native";
 import api from "../axios/axios";
+import {Ionicons} from "@expo/vector-icons";
 
 export default function Login({ navigation }) {
   const [usuario, setUser] = useState({
     cpf: "",
     senha: "",
+    showPassword:true,
   });
 
   async function handleLogin() {
@@ -45,15 +47,23 @@ export default function Login({ navigation }) {
             setUser({ ...usuario, cpf: value.replace(/[^0-9]/g, "") });
           }}
         />
-        <TextInput
-          style={styles.input}
-          placeholder="SENHA"
-          secureTextEntry
-          value={usuario.senha}
-          onChangeText={(value) => {
-            setUser({ ...usuario, senha: value });
-          }}
-        />
+         <View style={styles.passwordContainer}>
+  <TextInput
+    style={styles.passwordInput}
+    placeholder="SENHA"
+    secureTextEntry={usuario.showPassword}
+    value={usuario.senha}
+    onChangeText={(value) => {
+      setUser({ ...usuario, senha: value });
+    }}
+  />
+  <TouchableOpacity
+    onPress={() => setUser({ ...usuario, showPassword: !usuario.showPassword })}
+    
+  >
+    <Ionicons name={usuario.showPassword ? "eye-off" : "eye"} size={24} color="gray" />
+  </TouchableOpacity>
+</View>
         <TouchableOpacity onPress={handleLogin} style={styles.button}>
           <Text style={styles.buttonText}>ENTRAR</Text>
         </TouchableOpacity>
@@ -142,5 +152,20 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 30,
     fontWeight: "bold",
+  },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    backgroundColor: "#ccc",
+    borderRadius: 20,
+    marginBottom: 15,
+    paddingHorizontal: 10,
+    position: "relative", // Permite o posicionamento absoluto do ícone
+  },
+  passwordInput: {
+    flex: 1,
+    height: 40,
+    paddingRight: 40, // Garante espaço para o ícone dentro do input
   },
 });

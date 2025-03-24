@@ -9,18 +9,20 @@ import {
   Image
 } from "react-native";
 import api from "../axios/axios";
+import {Ionicons} from "@expo/vector-icons";
 
 export default function Cadastro({ navigation }) {
-  const [user, setUser] = useState({
+  const [usuario, setUser] = useState({
     nome: "",
     email: "",
     senha: "",
     cpf: "",
     telefone: "",
+    showPassword:true,
   });
 
   async function handleCadastro() {
-    await api.postCadastro(user).then(
+    await api.postCadastro(usuario).then(
       (response) => {
         Alert.alert("Sucesso", response.data.message);
         navigation.navigate("Login");
@@ -41,40 +43,50 @@ export default function Cadastro({ navigation }) {
         <TextInput 
           style={styles.input}
           placeholder="NOME"
-          value={user.nome}
-          onChangeText={(value) => setUser({ ...user, nome: value })}
+          value={usuario.nome}
+          onChangeText={(value) => setUser({ ...usuario, nome: value })}
         />
         <TextInput 
           style={styles.input}
           placeholder="EMAIL"
-          value={user.email}
-          onChangeText={(value) => setUser({ ...user, email: value })}
+          value={usuario.email}
+          onChangeText={(value) => setUser({ ...usuario, email: value })}
         />
-        <TextInput
-          style={styles.input}
-          placeholder="SENHA"
-          secureTextEntry
-          value={user.senha}
-          onChangeText={(value) => setUser({ ...user, senha: value })}
-        />
+        <View style={styles.passwordContainer}>
+  <TextInput
+    style={styles.passwordInput}
+    placeholder="SENHA"
+    secureTextEntry={usuario.showPassword}
+    value={usuario.senha}
+    onChangeText={(value) => {
+      setUser({ ...usuario, senha: value });
+    }}
+  />
+  <TouchableOpacity
+    onPress={() => setUser({ ...usuario, showPassword: !usuario.showPassword })}
+    
+  >
+    <Ionicons name={usuario.showPassword ? "eye-off" : "eye"} size={24} color="gray" />
+  </TouchableOpacity>
+</View>
         <TextInput
           style={styles.input}
           placeholder="CPF"
-          value={user.cpf}
+          value={usuario.cpf}
           keyboardType="numeric" // Exibe apenas o teclado numérico
           maxLength={11} // CPF tem 11 dígitos
           onChangeText={(value) => {
-            setUser({ ...user, cpf: value.replace(/[^0-9]/g, "") });
+            setUser({ ...usuario, cpf: value.replace(/[^0-9]/g, "") });
           }}
         />
         <TextInput
           style={styles.input}
           placeholder="TELEFONE"
-          value={user.telefone}
+          value={usuario.telefone}
           keyboardType="numeric" // Exibe apenas o teclado numérico
           maxLength={11} // CPF tem 11 dígitos
           onChangeText={(value) => {
-            setUser({ ...user, telefone: value.replace(/[^0-9]/g, "") });
+            setUser({ ...usuario, telefone: value.replace(/[^0-9]/g, "") });
           }}
         />
         <TouchableOpacity onPress={handleCadastro} style={styles.button}>
@@ -166,5 +178,19 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: "bold",
   },
-
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    backgroundColor: "#ccc",
+    borderRadius: 20,
+    marginBottom: 15,
+    paddingHorizontal: 10,
+    position: "relative", // Permite o posicionamento absoluto do ícone
+  },
+  passwordInput: {
+    flex: 1,
+    height: 40,
+    paddingRight: 40, // Garante espaço para o ícone dentro do input
+  },
 });
