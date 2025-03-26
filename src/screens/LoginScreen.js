@@ -44,7 +44,7 @@ export default function Login({ navigation }) {
           keyboardType="numeric" // Exibe apenas o teclado numérico
           maxLength={11} // CPF tem 11 dígitos
           onChangeText={(value) => {
-            setUser({ ...usuario, cpf: value.replace(/[^0-9]/g, "") });
+            setUser({ ...usuario, cpf: value});
           }}
         />
         <View style={styles.passwordContainer}>
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   },
   header: {
     width: "100%",
-    backgroundColor: "#ccc",
+    backgroundColor: "#D3D3D3",
     paddingVertical: 40,
     alignItems: "center",
     marginTop: -400,
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   input: {
     width: "100%",
     height: 40,
-    backgroundColor: "#ccc",
+    backgroundColor: "#D3D3D3",
     borderRadius: 20,
     marginBottom: 15,
     paddingHorizontal: 10,
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     width: "100%",
-    backgroundColor: "#ccc",
+    backgroundColor: "#D3D3D3",
     paddingVertical: 40,
     alignItems: "center",
     marginTop: 190,
@@ -165,15 +165,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
-    backgroundColor: "#ccc",
+    backgroundColor: "#D3D3D3",
     borderRadius: 20,
     marginBottom: 15,
     paddingHorizontal: 10,
-    position: "relative", // Permite o posicionamento absoluto do ícone
+    height: 40,
   },
   passwordInput: {
     flex: 1,
-    height: 40,
-    paddingRight: 40, // Garante espaço para o ícone dentro do input
   },
 });

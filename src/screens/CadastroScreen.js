@@ -81,7 +81,7 @@ export default function Cadastro({ navigation }) {
           keyboardType="numeric" // Exibe apenas o teclado numérico
           maxLength={11} // CPF tem 11 dígitos
           onChangeText={(value) => {
-            setUser({ ...usuario, cpf: value.replace(/[^0-9]/g, "") });
+            setUser({ ...usuario, cpf: value});
           }}
         />
         <TextInput
@@ -91,7 +91,7 @@ export default function Cadastro({ navigation }) {
           keyboardType="numeric" // Exibe apenas o teclado numérico
           maxLength={11} // CPF tem 11 dígitos
           onChangeText={(value) => {
-            setUser({ ...usuario, telefone: value.replace(/[^0-9]/g, "") });
+            setUser({ ...usuario, telefone: value });
           }}
         />
         <TouchableOpacity onPress={handleCadastro} style={styles.button}>
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   },
   header: {
     width: "100%",
-    backgroundColor: "#ccc",
+    backgroundColor: "#D3D3D3",
     paddingVertical: 40,
     alignItems: "center",
     marginTop: -250,
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   },
   body: {
     width: "60%",
-    backgroundColor: "#fff",
+    backgroundColor: "white",
     padding: 20,
     borderRadius: 20,
     alignItems: "center",
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   input: {
     width: "100%",
     height: 40,
-    backgroundColor: "#ccc",
+    backgroundColor: "#D3D3D3",
     borderRadius: 20,
     marginBottom: 15,
     paddingHorizontal: 10,
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     width: "100%",
-    backgroundColor: "#ccc",
+    backgroundColor: "#D3D3D3",
     paddingVertical: 40,
     alignItems: "center",
     marginTop: 88,
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
-    backgroundColor: "#ccc",
+    backgroundColor: "#D3D3D3",
     borderRadius: 20,
     marginBottom: 15,
     paddingHorizontal: 10,
