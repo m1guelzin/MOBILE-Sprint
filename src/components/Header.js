@@ -11,7 +11,7 @@ export default function Header({ title, children }) {
       </View>
      
       {/* Conteudo Principal */}
-      <View style={styles.container2}>{children}</View>
+      <View>{children}</View>
     </View>
   );
 }
@@ -28,8 +28,5 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: "bold",
     paddingVertical:10,
-  },
-  container2: {
-    flex: 1,
   },
 });
