@@ -10,8 +10,10 @@ import {
 } from "react-native";
 import api from "../axios/axios";
 import { Ionicons } from "@expo/vector-icons";
+import {useNavigation} from "@react-navigation/native"
 
-export default function Cadastro({ navigation }) {
+export default function Cadastro() {
+  const navigation = useNavigation();
   const [usuario, setUser] = useState({
     nome: "",
     email: "",
@@ -35,9 +37,7 @@ export default function Cadastro({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Página Cadastro</Text>
-      </View>
+      
       <View style={styles.body}>
         <Image source={require("../img/logo-senai1.png")} style={styles.logo} />
         <TextInput
@@ -121,19 +121,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "red",
   },
-  header: {
-    width: "100%",
-    backgroundColor: "#D3D3D3",
-    paddingVertical: 40,
-    alignItems: "center",
-    marginTop: -250,
-    marginBottom: 129,
-    top: 0,
-  },
-  headerText: {
-    fontSize: 30,
-    fontWeight: "bold",
-  },
+  
   body: {
     width: "60%",
     backgroundColor: "white",
@@ -177,10 +165,11 @@ const styles = StyleSheet.create({
   footer: {
     width: "100%",
     backgroundColor: "#D3D3D3",
-    paddingVertical: 40,
+    paddingVertical: 20,
     alignItems: "center",
     marginTop: 88,
-    marginBottom: -245,
+    bottom: 0,
+    position: "absolute",
   },
   footerText: {
     fontSize: 30,
@@ -193,12 +182,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#D3D3D3",
     borderRadius: 20,
     marginBottom: 15,
-    paddingHorizontal: 10,
-    position: "relative", // Permite o posicionamento absoluto do ícone
+    paddingHorizontal: 7,
+    height: 40,
   },
   passwordInput: {
     flex: 1,
-    height: 40,
-    paddingRight: 40, // Garante espaço para o ícone dentro do input
   },
 });

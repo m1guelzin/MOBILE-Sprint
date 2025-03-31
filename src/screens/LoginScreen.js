@@ -10,8 +10,10 @@ import {
 } from "react-native";
 import api from "../axios/axios";
 import { Ionicons } from "@expo/vector-icons";
+import {useNavigation} from "@react-navigation/native"
 
-export default function Login({ navigation }) {
+export default function Login() {
+  const navigation = useNavigation();
   const [usuario, setUser] = useState({
     cpf: "",
     senha: "",
@@ -32,9 +34,7 @@ export default function Login({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Página Login</Text>
-      </View>
+     
       <View style={styles.body}>
         <Image source={require("../img/logo-senai1.png")} style={styles.logo} />
         <TextInput
@@ -44,7 +44,7 @@ export default function Login({ navigation }) {
           keyboardType="numeric" // Exibe apenas o teclado numérico
           maxLength={11} // CPF tem 11 dígitos
           onChangeText={(value) => {
-            setUser({ ...usuario, cpf: value});
+            setUser({ ...usuario, cpf: value });
           }}
         />
         <View style={styles.passwordContainer}>
@@ -96,19 +96,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "red",
   },
-  header: {
-    width: "100%",
-    backgroundColor: "#D3D3D3",
-    paddingVertical: 40,
-    alignItems: "center",
-    marginTop: -400,
-    marginBottom: 180,
-    top: 0,
-  },
-  headerText: {
-    fontSize: 30,
-    fontWeight: "bold",
-  },
+  
   body: {
     width: "60%",
     backgroundColor: "white",
@@ -152,10 +140,11 @@ const styles = StyleSheet.create({
   footer: {
     width: "100%",
     backgroundColor: "#D3D3D3",
-    paddingVertical: 40,
     alignItems: "center",
     marginTop: 190,
-    marginBottom: -395,
+    paddingVertical: 20,
+    position: "absolute",
+    bottom: 0,
   },
   footerText: {
     fontSize: 30,
@@ -168,7 +157,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#D3D3D3",
     borderRadius: 20,
     marginBottom: 15,
-    paddingHorizontal: 10,
+    paddingHorizontal: 7,
     height: 40,
   },
   passwordInput: {
