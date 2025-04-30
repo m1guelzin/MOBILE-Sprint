@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,42 +6,62 @@ import {
   TouchableOpacity,
   Modal,
   StyleSheet,
-  ActivityIndicator,
-  ScrollView,
-  Platform,
   Image,
+  Alert,
 } from "react-native";
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker from "@react-native-community/datetimepicker";
 import api from "../axios/axios";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 export default function Salas() {
-  const [salas, setSalas] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [salasDisponiveis, setSalasDisponiveis] = useState([]);
+  const [modalHorariosVisible, setModalHorariosVisible] = useState(false);
+  const [modalConfirmacaoVisible, setModalConfirmacaoVisible] = useState(false);
   const [salaSelecionada, setSalaSelecionada] = useState(null);
   const [diaSelecionado, setDiaSelecionado] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [horarios, setHorarios] = useState([
-    "08:00", "09:00", "10:00", "11:00", "12:00", 
-    "13:00", "14:00", "15:00", "16:00", "17:00"
-  ]);
+  const [horariosDisponiveis, setHorariosDisponiveis] = useState([]);
+  const [horarioSelecionado, setHorarioSelecionado] = useState(null);
 
-  async function getAllSalas() {
+  async function buscarSalasDisponiveis(data) {
+    if (!data) {
+      setSalasDisponiveis([]);
+      return;
+    }
     try {
-      setLoading(true);
-      const response = await api.getAllSalas();  
-      setSalas(response.data.salas);
+      const dataFormatada = `${data.getFullYear()}-${String(
+        data.getMonth() + 1
+      ).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
+      const response = await api.getSalasDisponiveisPorData(dataFormatada);
+      setSalasDisponiveis(response.data.salas_disponiveis);
     } catch (error) {
-      console.log(error.response?.data?.error || "Erro ao buscar salas");
-    } finally {
-      setLoading(false);
+      console.log("Erro ao buscar salas disponíveis:", error.response?.data?.error || "Erro ao buscar salas");
+      setSalasDisponiveis([]);
+    }
+  }
+
+  async function buscarHorariosDisponiveis(sala, data) {
+    if (!sala || !data) {
+      setHorariosDisponiveis([]);
+      return;
+    }
+    try {
+      const dataFormatada = `${data.getFullYear()}-${String(
+        data.getMonth() + 1
+      ).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
+      const response = await api.getSalasHorariosDisponiveis(dataFormatada);
+      const salaHorarios = response.data.salas.find((s) => s.id_sala === sala.id_salas);
+      setHorariosDisponiveis(salaHorarios?.horarios_disponiveis || []);
+    } catch (error) {
+      console.log(error.response?.data?.error || "Erro ao buscar horários");
+      setHorariosDisponiveis([]);
     }
   }
 
   function abrirModalComHorarios(sala) {
     setSalaSelecionada(sala);
-    setModalVisible(true);
+    buscarHorariosDisponiveis(sala, diaSelecionado);
+    setModalHorariosVisible(true);
   }
 
   function onDateSelected(event, selectedDate) {
@@ -49,53 +69,91 @@ export default function Salas() {
     setShowDatePicker(false);
     if (currentDate) {
       setDiaSelecionado(currentDate);
-      getAllSalas(); // Só busca as salas depois de escolher o dia
+      buscarSalasDisponiveis(currentDate);
+    }
+  }
+
+  function selecionarHorario(horario) {
+    setHorarioSelecionado(horario);
+    setModalHorariosVisible(false);
+    setModalConfirmacaoVisible(true);
+  }
+
+  async function criarNovaReserva() {
+
+    const [horaInicio, minutoInicio] = horarioSelecionado.inicio.split(':').map(Number);
+    const horaFim = String(horaInicio + 1).padStart(2, '0');
+    const dataFormatada = `${diaSelecionado.getFullYear()}-${String(
+      diaSelecionado.getMonth() + 1
+    ).padStart(2, "0")}-${String(diaSelecionado.getDate()).padStart(2, "0")}`;
+
+    try {
+      const reserva = {
+        id_usuario: 1, // Substitua pelo ID do usuário logado
+        fkid_salas: salaSelecionada.id_salas,
+        data_reserva: dataFormatada,
+        horario_inicio: `${horarioSelecionado.inicio}:00`,
+        horario_fim: `${horaFim}:${String(minutoInicio).padStart(2, '0')}:00`,
+      };
+      const response = await api.criarReserva(reserva);
+      Alert.alert(response.data.message);
+      setModalConfirmacaoVisible(false);
+      setSalaSelecionada(null);
+      setDiaSelecionado(null);
+      setHorariosDisponiveis([]);
+      setHorarioSelecionado(null);
+    } catch (error) {
+      console.log(error.response?.data?.error);
+      Alert.alert(error.response.data.error);
     }
   }
 
   return (
     <View style={styles.mainContainer}>
-      {/* Header */}
+      {/* Header da tela */}
       <View style={styles.header}>
-        <Image source={require("../img/logo-senai1.png")} style={styles.logo} />
-        <Text style={styles.headerText}>Salas da Instituição</Text>
+        <Image source={require("../img/logo-senai1.png")} style={styles.logo} resizeMode="contain" />
+        <View>
+          <View>
+            <MaterialCommunityIcons name="account-circle" size={45} color="#555" />
+          </View>
+        </View>
       </View>
 
-      {/* Botão para selecionar data */}
+      {/* Seção para selecionar a data */}
       <View style={styles.selectDateContainer}>
-        <TouchableOpacity 
-          style={styles.selectDateButton} 
-          onPress={() => setShowDatePicker(true)}
-        >
+        <TouchableOpacity style={styles.selectDateButton} onPress={() => setShowDatePicker(true)}>
           <Text style={styles.selectDateButtonText}>
-            {diaSelecionado 
-              ? `Selecionado: ${diaSelecionado.getDate()}/${diaSelecionado.getMonth()+1}/${diaSelecionado.getFullYear()}`
+            {diaSelecionado
+              ? `Selecionado: ${diaSelecionado.getDate()}/${
+                  diaSelecionado.getMonth() + 1
+                }/${diaSelecionado.getFullYear()}`
               : "Escolher Data 📅"}
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Date Picker */}
       {showDatePicker && (
         <DateTimePicker
           value={diaSelecionado || new Date()}
           mode="date"
-          display={Platform.OS === "ios" ? "spinner" : "calendar"}
           onChange={onDateSelected}
         />
       )}
 
-      {/* Lista de Salas */}
+      {/* Lista de salas disponíveis */}
       <View style={styles.container}>
         {!diaSelecionado ? (
-          <Text style={styles.selectDateMessage}>Selecione uma data para ver as salas.</Text>
-        ) : loading ? (
-          <ActivityIndicator size="large" color="#0000ff" />
-        ) : salas.length === 0 ? (
-          <Text style={styles.emptyMessage}>Nenhuma sala disponível.</Text>
+          <Text style={styles.Messages}>
+            Selecione uma data para ver as salas disponíveis.
+          </Text>
+        ) : salasDisponiveis.length === 0 ? (
+          <Text style={styles.Messages}>
+            Nenhuma sala disponível para esta data.
+          </Text>
         ) : (
           <FlatList
-            data={salas}
+            data={salasDisponiveis}
             keyExtractor={(item) => item.id_salas.toString()}
             renderItem={({ item }) => (
               <TouchableOpacity
@@ -103,17 +161,10 @@ export default function Salas() {
                 onPress={() => abrirModalComHorarios(item)}
               >
                 <View style={styles.salaIconContainer}>
-                  <MaterialCommunityIcons
-                    name="google-classroom"
-                    size={40}
-                    color="black"
-                  />
+                  <MaterialCommunityIcons name="google-classroom" size={40} color="black" />
                 </View>
-                <View style={styles.salaInfo}>
+                <View>
                   <Text style={styles.salaNome}>{item.nome_da_sala}</Text>
-                  <Text style={styles.salaDetalhe}>Capacidade: {item.capacidade} pessoas</Text>
-                  <Text style={styles.salaDetalhe}>Local: {item.localizacao}</Text>
-                  <Text style={styles.salaDetalhe}>Equipamentos: {item.equipamentos}</Text>
                 </View>
               </TouchableOpacity>
             )}
@@ -121,10 +172,10 @@ export default function Salas() {
         )}
       </View>
 
-      {/* Modal de Horários */}
+      {/* Modal para exibir os horários disponíveis da sala selecionada */}
       <Modal
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
+        visible={modalHorariosVisible}
+        onRequestClose={() => setModalHorariosVisible(false)}
         animationType="slide"
         transparent={true}
       >
@@ -132,33 +183,92 @@ export default function Salas() {
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {salaSelecionada?.nome_da_sala || "Sala"} - {diaSelecionado ? 
-                  `${diaSelecionado.getDate()}/${diaSelecionado.getMonth()+1}/${diaSelecionado.getFullYear()}` : ""}
+                {salaSelecionada?.nome_da_sala || "Sala"} -{" "}
+                {diaSelecionado
+                  ? `${diaSelecionado.getDate()}/${
+                      diaSelecionado.getMonth() + 1
+                    }/${diaSelecionado.getFullYear()}`
+                  : ""}
               </Text>
             </View>
-            
+
             <Text style={styles.horariosTitulo}>Horários Disponíveis</Text>
-            
-            <View style={styles.horariosGrid}>
-              {horarios.map((horario, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.horarioItem}
-                  onPress={() => {
-                    alert(`Horário ${horario} selecionado para reserva`);
-                  }}
-                >
-                  <Text style={styles.horarioText}>{horario}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setModalVisible(false)}
-            >
+
+            {horariosDisponiveis.length === 0 ? (
+              <Text style={styles.emptyMessage}>
+                Nenhum horário disponível para esta sala neste dia.
+              </Text>
+            ) : (
+              <View style={styles.horariosGrid}>
+                {horariosDisponiveis.map((horario, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.horarioItem}
+                    onPress={() => selecionarHorario(horario)}
+                  >
+                    <Text style={styles.horarioText}>
+                      {horario.inicio} - {horario.fim}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            {/* Botão para fechar o modal de horários */}
+            <TouchableOpacity style={styles.closeButton} onPress={() => setModalHorariosVisible(false)}>
               <Text style={styles.closeButtonText}>Fechar</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal de confirmação de reserva */}
+      <Modal
+        visible={modalConfirmacaoVisible}
+        onRequestClose={() => setModalConfirmacaoVisible(false)}
+        animationType="fade"
+        transparent={true}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalConfirmacaoContainer}>
+            <Text style={styles.modalConfirmacaoTitle}>Confirmar Reserva?</Text>
+            <Text style={styles.modalConfirmacaoInfo}>
+              Sala: {salaSelecionada?.nome_da_sala || "N/A"}
+            </Text>
+            <Text style={styles.modalConfirmacaoInfo}>
+              Localização: {salaSelecionada?.localizacao || "N/A"}
+            </Text>
+            <Text style={styles.modalConfirmacaoInfo}>
+              Capacidade: {salaSelecionada?.capacidade || "N/A"} pessoas
+            </Text>
+            <Text style={styles.modalConfirmacaoInfo}>
+              Equipamentos: {salaSelecionada?.equipamentos || "N/A"}
+            </Text>
+            <Text style={styles.modalConfirmacaoInfo}>
+              Data: {diaSelecionado
+                ? `${diaSelecionado.getDate()}/${
+                    diaSelecionado.getMonth() + 1
+                  }/${diaSelecionado.getFullYear()}`
+                : "N/A"}
+            </Text>
+            <Text style={styles.modalConfirmacaoInfo}>
+              Horário: {horarioSelecionado?.inicio} - {horarioSelecionado?.fim}
+            </Text>
+
+            <View style={styles.modalConfirmacaoButtons}>
+              <TouchableOpacity
+                style={[styles.confirmButton, styles.button]}
+                onPress={criarNovaReserva}
+              >
+                <Text style={styles.confirmButtonText}>Confirmar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.cancelButton, styles.button]}
+                onPress={() => setModalConfirmacaoVisible(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -172,15 +282,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#FF0000",
   },
   header: {
-    height: 80,
+    height: 70,
     backgroundColor: "#D3D3D3",
-    justifyContent: "center",
+    flexDirection: "row", // Para alinhar a imagem e o ícone
+    justifyContent: "space-between", // Espaço entre os elementos
     alignItems: "center",
-    paddingTop: 10,
+    paddingHorizontal: 10, // Adicionei um pouco de padding horizontal
   },
-  headerText: {
-    fontSize: 24,
-    fontWeight: "bold",
+  logo: {
+    width: 250, // largura da logo
+    height: 500, // altura da logo
+    resizeMode: "contain", // Garante que a imagem caiba dentro das dimensões
   },
   selectDateContainer: {
     marginVertical: 15,
@@ -191,28 +303,21 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 10,
-    elevation: 3,
   },
   selectDateButtonText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#333",
   },
   container: {
     flex: 1,
     paddingHorizontal: 15,
     paddingBottom: 10,
   },
-  selectDateMessage: {
+  Messages: {
     fontSize: 16,
     textAlign: "center",
     marginTop: 30,
-    color: "#FFF",
-  },
-  emptyMessage: {
-    textAlign: "center",
-    fontSize: 18,
-    marginTop: 50,
+    fontWeight: "bold",
     color: "#FFF",
   },
   salaCard: {
@@ -221,37 +326,27 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 15,
     marginBottom: 12,
-    elevation: 3,
+    alignItems: "center", // Alinhar os itens verticalmente
   },
   salaIconContainer: {
     marginRight: 15,
     justifyContent: "center",
   },
-  salaInfo: {
-    flex: 1,
-  },
   salaNome: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 5,
-  },
-  salaDetalhe: {
-    fontSize: 14,
-    color: "#555",
-    marginBottom: 2,
   },
   modalBackdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: "center", // Centraliza verticalmente
+    alignItems: "center", // Centraliza horizontalmente
   },
   modalContainer: {
     width: "90%",
     backgroundColor: "white",
     borderRadius: 10,
     padding: 20,
-    elevation: 5,
     maxHeight: "80%",
   },
   modalHeader: {
@@ -277,7 +372,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   horarioItem: {
-    width: "30%",
+    width: "48%",
     backgroundColor: "#e1f5fe",
     padding: 12,
     borderRadius: 8,
@@ -299,8 +394,52 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
   },
-  logo: {
-    width: 250,
-    height: 150,
+  modalConfirmacaoContainer: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+    alignItems: "center",
+    elevation: 5,
+    width: "80%", // Largura do modal de confirmação
+  },
+  modalConfirmacaoTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 15,
+    textAlign: "center",
+  },
+  modalConfirmacaoInfo: {
+    fontSize: 16,
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  modalConfirmacaoButtons: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+    marginTop: 20,
+  },
+  button: {
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    minWidth: 100,
+    alignItems: "center",
+  },
+  confirmButton: {
+    backgroundColor: "#4CAF50",
+  },
+  confirmButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  cancelButton: {
+    backgroundColor: "#f44336",
+  },
+  cancelButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });

@@ -1,32 +1,34 @@
 import React from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { View, Image, StyleSheet } from "react-native";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
-
-export default function HeaderPrincipal({ children }) {
+const HeaderPrincipal = () => {
   return (
-    <View style = {{flex:1}}>
-      {/* Cabeçalho */}
-      <View style={styles.header}>
-        <Text style={styles.headerText}></Text>
+    <View style={styles.header}>
+      <Image source={require("../img/logo-senai1.png")} style={styles.logo} resizeMode="contain" />
+      <View>
+        <View>
+          <MaterialCommunityIcons name="account-circle" size={45} color="#555" />
+        </View>
       </View>
-     
-      {/* Conteudo Principal */}
-      <View>{children}</View>
     </View>
   );
-}
+};
+
 const styles = StyleSheet.create({
   header: {
+    height: 70,
     backgroundColor: "#D3D3D3",
-    width: "100%",
-    height: 80,
-    justifyContent: "center",      
-    alignItems: "center", 
-    
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 10,
   },
-  headerText:{
-    fontSize: 30,
-    fontWeight: "bold",
-    paddingVertical:10,
+  logo: {
+    width: 250,
+    height: 500,
+    resizeMode: "contain",
   },
 });
+
+export default HeaderPrincipal;
