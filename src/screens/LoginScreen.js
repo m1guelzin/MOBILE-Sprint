@@ -9,6 +9,7 @@ import {
   Image,
 } from "react-native";
 import api from "../axios/axios";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from "@expo/vector-icons";
 import {useNavigation} from "@react-navigation/native"
 
@@ -22,15 +23,26 @@ export default function Login() {
 
   async function handleLogin() {
     await api.postLogin(usuario).then(
-      (response) => {
+      async (response) => {
+        const usuarioLogado = response.data.user;
+        // Salvar os dados do usuário no AsyncStorage
+        try {
+          await AsyncStorage.setItem('usuarioLogado', JSON.stringify(usuarioLogado));
+        } catch (storageError) {
+          console.error("Erro ao salvar no AsyncStorage:", storageError);
+          Alert.alert("Erro", "Não foi possível salvar os dados localmente.");
+          return;
+        }
+  
         Alert.alert("OK", response.data.message);
         navigation.navigate("Home");
       },
       (error) => {
-        Alert.alert("Erro", error.response.data.error);
+        Alert.alert("Erro", error.response?.data?.error || "Erro ao fazer login");
       }
     );
   }
+  
 
   return (
     <View style={styles.container}>

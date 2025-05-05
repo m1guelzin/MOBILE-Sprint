@@ -10,10 +10,16 @@ import {
   Alert,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../axios/axios";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import SalaCard from "../components/SalaCard";
+import HorariosModal from "../components/HorariosModal";
+import ConfirmacaoModal from "../components/ConfirmacaoModal";
+import {useNavigation} from "@react-navigation/native"
 
 export default function Salas() {
+  const navigation = useNavigation();
   const [salasDisponiveis, setSalasDisponiveis] = useState([]);
   const [modalHorariosVisible, setModalHorariosVisible] = useState(false);
   const [modalConfirmacaoVisible, setModalConfirmacaoVisible] = useState(false);
@@ -23,19 +29,33 @@ export default function Salas() {
   const [horariosDisponiveis, setHorariosDisponiveis] = useState([]);
   const [horarioSelecionado, setHorarioSelecionado] = useState(null);
 
+  const formatDate = (date) => {
+    if (!date) return "";
+    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+  };
+  
+  const formatDateForAPI = (date) => {
+    if (!date) return "";
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(date.getDate()).padStart(2, "0")}`;
+  };
+
   async function buscarSalasDisponiveis(data) {
     if (!data) {
       setSalasDisponiveis([]);
       return;
     }
     try {
-      const dataFormatada = `${data.getFullYear()}-${String(
-        data.getMonth() + 1
-      ).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
+      const dataFormatada = formatDateForAPI(data);
       const response = await api.getSalasDisponiveisPorData(dataFormatada);
       setSalasDisponiveis(response.data.salas_disponiveis);
     } catch (error) {
-      console.log("Erro ao buscar salas disponíveis:", error.response?.data?.error || "Erro ao buscar salas");
+      console.log(
+        "Erro ao buscar salas disponíveis:",
+        error.response.data.error
+      );
       setSalasDisponiveis([]);
     }
   }
@@ -46,14 +66,14 @@ export default function Salas() {
       return;
     }
     try {
-      const dataFormatada = `${data.getFullYear()}-${String(
-        data.getMonth() + 1
-      ).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
+      const dataFormatada = formatDateForAPI(data);
       const response = await api.getSalasHorariosDisponiveis(dataFormatada);
-      const salaHorarios = response.data.salas.find((s) => s.id_sala === sala.id_salas);
-      setHorariosDisponiveis(salaHorarios?.horarios_disponiveis || []);
+      const salaHorarios = response.data.salas.find(
+        (s) => s.id_sala === sala.id_salas
+      );
+      setHorariosDisponiveis(salaHorarios.horarios_disponiveis || []);
     } catch (error) {
-      console.log(error.response?.data?.error || "Erro ao buscar horários");
+      console.log(error.response.data.error);
       setHorariosDisponiveis([]);
     }
   }
@@ -80,21 +100,22 @@ export default function Salas() {
   }
 
   async function criarNovaReserva() {
-
-    const [horaInicio, minutoInicio] = horarioSelecionado.inicio.split(':').map(Number);
-    const horaFim = String(horaInicio + 1).padStart(2, '0');
-    const dataFormatada = `${diaSelecionado.getFullYear()}-${String(
-      diaSelecionado.getMonth() + 1
-    ).padStart(2, "0")}-${String(diaSelecionado.getDate()).padStart(2, "0")}`;
-
+    const [horaInicio, minutoInicio] = horarioSelecionado.inicio
+      .split(":")
+      .map(Number);
+    const horaFim = String(horaInicio + 1).padStart(2, "0");
+    const dataFormatada = formatDateForAPI(diaSelecionado);
     try {
+      const usuarioLogado = await AsyncStorage.getItem("usuarioLogado");
+      const usuario = JSON.parse(usuarioLogado);
       const reserva = {
-        id_usuario: 1, // Substitua pelo ID do usuário logado
+        id_usuario: usuario.id_usuario, //AsyncStorage
         fkid_salas: salaSelecionada.id_salas,
         data_reserva: dataFormatada,
         horario_inicio: `${horarioSelecionado.inicio}:00`,
-        horario_fim: `${horaFim}:${String(minutoInicio).padStart(2, '0')}:00`,
+        horario_fim: `${horaFim}:${String(minutoInicio).padStart(2, "0")}:00`,
       };
+
       const response = await api.criarReserva(reserva);
       Alert.alert(response.data.message);
       setModalConfirmacaoVisible(false);
@@ -103,7 +124,7 @@ export default function Salas() {
       setHorariosDisponiveis([]);
       setHorarioSelecionado(null);
     } catch (error) {
-      console.log(error.response?.data?.error);
+      console.log(error.response.data.error);
       Alert.alert(error.response.data.error);
     }
   }
@@ -112,22 +133,33 @@ export default function Salas() {
     <View style={styles.mainContainer}>
       {/* Header da tela */}
       <View style={styles.header}>
-        <Image source={require("../img/logo-senai1.png")} style={styles.logo} resizeMode="contain" />
+        <Image
+          source={require("../img/logo-senai1.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
         <View>
           <View>
-            <MaterialCommunityIcons name="account-circle" size={45} color="#555" />
+            <TouchableOpacity onPress={() => navigation.navigate("Home")}>
+              <MaterialCommunityIcons
+                name="account-circle"
+                size={45}
+                color="#555"
+              />
+            </TouchableOpacity>
           </View>
         </View>
       </View>
 
       {/* Seção para selecionar a data */}
       <View style={styles.selectDateContainer}>
-        <TouchableOpacity style={styles.selectDateButton} onPress={() => setShowDatePicker(true)}>
+        <TouchableOpacity
+          style={styles.selectDateButton}
+          onPress={() => setShowDatePicker(true)}
+        >
           <Text style={styles.selectDateButtonText}>
             {diaSelecionado
-              ? `Selecionado: ${diaSelecionado.getDate()}/${
-                  diaSelecionado.getMonth() + 1
-                }/${diaSelecionado.getFullYear()}`
+              ? `Selecionado: ${formatDate(diaSelecionado)}`
               : "Escolher Data 📅"}
           </Text>
         </TouchableOpacity>
@@ -137,6 +169,7 @@ export default function Salas() {
         <DateTimePicker
           value={diaSelecionado || new Date()}
           mode="date"
+          minimumDate={new Date()}
           onChange={onDateSelected}
         />
       )}
@@ -156,122 +189,30 @@ export default function Salas() {
             data={salasDisponiveis}
             keyExtractor={(item) => item.id_salas.toString()}
             renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.salaCard}
-                onPress={() => abrirModalComHorarios(item)}
-              >
-                <View style={styles.salaIconContainer}>
-                  <MaterialCommunityIcons name="google-classroom" size={40} color="black" />
-                </View>
-                <View>
-                  <Text style={styles.salaNome}>{item.nome_da_sala}</Text>
-                </View>
-              </TouchableOpacity>
+              <SalaCard sala={item} onPress={abrirModalComHorarios} />
             )}
           />
         )}
       </View>
 
-      {/* Modal para exibir os horários disponíveis da sala selecionada */}
-      <Modal
+      <HorariosModal
         visible={modalHorariosVisible}
-        onRequestClose={() => setModalHorariosVisible(false)}
-        animationType="slide"
-        transparent={true}
-      >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {salaSelecionada?.nome_da_sala || "Sala"} -{" "}
-                {diaSelecionado
-                  ? `${diaSelecionado.getDate()}/${
-                      diaSelecionado.getMonth() + 1
-                    }/${diaSelecionado.getFullYear()}`
-                  : ""}
-              </Text>
-            </View>
+        onClose={() => setModalHorariosVisible(false)}
+        sala={salaSelecionada}
+        dia={diaSelecionado}
+        horarios={horariosDisponiveis}
+        onSelecionarHorario={selecionarHorario}
+      />
 
-            <Text style={styles.horariosTitulo}>Horários Disponíveis</Text>
-
-            {horariosDisponiveis.length === 0 ? (
-              <Text style={styles.emptyMessage}>
-                Nenhum horário disponível para esta sala neste dia.
-              </Text>
-            ) : (
-              <View style={styles.horariosGrid}>
-                {horariosDisponiveis.map((horario, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={styles.horarioItem}
-                    onPress={() => selecionarHorario(horario)}
-                  >
-                    <Text style={styles.horarioText}>
-                      {horario.inicio} - {horario.fim}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-
-            {/* Botão para fechar o modal de horários */}
-            <TouchableOpacity style={styles.closeButton} onPress={() => setModalHorariosVisible(false)}>
-              <Text style={styles.closeButtonText}>Fechar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Modal de confirmação de reserva */}
-      <Modal
+      <ConfirmacaoModal
         visible={modalConfirmacaoVisible}
-        onRequestClose={() => setModalConfirmacaoVisible(false)}
-        animationType="fade"
-        transparent={true}
-      >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalConfirmacaoContainer}>
-            <Text style={styles.modalConfirmacaoTitle}>Confirmar Reserva?</Text>
-            <Text style={styles.modalConfirmacaoInfo}>
-              Sala: {salaSelecionada?.nome_da_sala || "N/A"}
-            </Text>
-            <Text style={styles.modalConfirmacaoInfo}>
-              Localização: {salaSelecionada?.localizacao || "N/A"}
-            </Text>
-            <Text style={styles.modalConfirmacaoInfo}>
-              Capacidade: {salaSelecionada?.capacidade || "N/A"} pessoas
-            </Text>
-            <Text style={styles.modalConfirmacaoInfo}>
-              Equipamentos: {salaSelecionada?.equipamentos || "N/A"}
-            </Text>
-            <Text style={styles.modalConfirmacaoInfo}>
-              Data: {diaSelecionado
-                ? `${diaSelecionado.getDate()}/${
-                    diaSelecionado.getMonth() + 1
-                  }/${diaSelecionado.getFullYear()}`
-                : "N/A"}
-            </Text>
-            <Text style={styles.modalConfirmacaoInfo}>
-              Horário: {horarioSelecionado?.inicio} - {horarioSelecionado?.fim}
-            </Text>
-
-            <View style={styles.modalConfirmacaoButtons}>
-              <TouchableOpacity
-                style={[styles.confirmButton, styles.button]}
-                onPress={criarNovaReserva}
-              >
-                <Text style={styles.confirmButtonText}>Confirmar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.cancelButton, styles.button]}
-                onPress={() => setModalConfirmacaoVisible(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancelar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setModalConfirmacaoVisible(false)}
+        sala={salaSelecionada}
+        dia={diaSelecionado}
+        horario={horarioSelecionado}
+        onConfirmar={criarNovaReserva}
+        onCancelar={() => setModalConfirmacaoVisible(false)}
+      />
     </View>
   );
 }
@@ -284,15 +225,15 @@ const styles = StyleSheet.create({
   header: {
     height: 70,
     backgroundColor: "#D3D3D3",
-    flexDirection: "row", // Para alinhar a imagem e o ícone
-    justifyContent: "space-between", // Espaço entre os elementos
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 10, // Adicionei um pouco de padding horizontal
+    paddingHorizontal: 10,
   },
   logo: {
-    width: 250, // largura da logo
-    height: 500, // altura da logo
-    resizeMode: "contain", // Garante que a imagem caiba dentro das dimensões
+    width: 250,
+    height: 500,
+    resizeMode: "contain",
   },
   selectDateContainer: {
     marginVertical: 15,
@@ -319,127 +260,5 @@ const styles = StyleSheet.create({
     marginTop: 30,
     fontWeight: "bold",
     color: "#FFF",
-  },
-  salaCard: {
-    flexDirection: "row",
-    backgroundColor: "#FFF",
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 12,
-    alignItems: "center", // Alinhar os itens verticalmente
-  },
-  salaIconContainer: {
-    marginRight: 15,
-    justifyContent: "center",
-  },
-  salaNome: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center", // Centraliza verticalmente
-    alignItems: "center", // Centraliza horizontalmente
-  },
-  modalContainer: {
-    width: "90%",
-    backgroundColor: "white",
-    borderRadius: 10,
-    padding: 20,
-    maxHeight: "80%",
-  },
-  modalHeader: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
-    paddingBottom: 10,
-    marginBottom: 15,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  horariosTitulo: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginVertical: 10,
-    textAlign: "center",
-  },
-  horariosGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-  horarioItem: {
-    width: "48%",
-    backgroundColor: "#e1f5fe",
-    padding: 12,
-    borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  horarioText: {
-    fontSize: 16,
-  },
-  closeButton: {
-    backgroundColor: "#D32F2F",
-    padding: 12,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 15,
-  },
-  closeButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  modalConfirmacaoContainer: {
-    backgroundColor: "white",
-    borderRadius: 10,
-    padding: 20,
-    alignItems: "center",
-    elevation: 5,
-    width: "80%", // Largura do modal de confirmação
-  },
-  modalConfirmacaoTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 15,
-    textAlign: "center",
-  },
-  modalConfirmacaoInfo: {
-    fontSize: 16,
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  modalConfirmacaoButtons: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-    marginTop: 20,
-  },
-  button: {
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    minWidth: 100,
-    alignItems: "center",
-  },
-  confirmButton: {
-    backgroundColor: "#4CAF50",
-  },
-  confirmButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  cancelButton: {
-    backgroundColor: "#f44336",
-  },
-  cancelButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
   },
 });
