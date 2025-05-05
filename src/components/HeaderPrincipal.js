@@ -1,14 +1,27 @@
 import React from "react";
-import { View, Image, StyleSheet } from "react-native";
+import { View, Image, StyleSheet, TouchableOpacity } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import {useNavigation} from "@react-navigation/native"
+
 
 const HeaderPrincipal = () => {
+  const navigation = useNavigation();
   return (
     <View style={styles.header}>
-      <Image source={require("../img/logo-senai1.png")} style={styles.logo} resizeMode="contain" />
+      <Image
+        source={require("../img/logo-senai1.png")}
+        style={styles.logo}
+        resizeMode="contain"
+      />
       <View>
         <View>
-          <MaterialCommunityIcons name="account-circle" size={45} color="#555" />
+          <TouchableOpacity onPress={() => navigation.navigate("Home")}>
+            <MaterialCommunityIcons
+              name="account-circle"
+              size={45}
+              color="#555"
+            />
+          </TouchableOpacity>
         </View>
       </View>
     </View>

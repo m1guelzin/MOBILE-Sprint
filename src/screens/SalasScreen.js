@@ -16,10 +16,10 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import SalaCard from "../components/SalaCard";
 import HorariosModal from "../components/HorariosModal";
 import ConfirmacaoModal from "../components/ConfirmacaoModal";
+import HeaderPrincipal from "../components/HeaderPrincipal";
 import {useNavigation} from "@react-navigation/native"
 
 export default function Salas() {
-  const navigation = useNavigation();
   const [salasDisponiveis, setSalasDisponiveis] = useState([]);
   const [modalHorariosVisible, setModalHorariosVisible] = useState(false);
   const [modalConfirmacaoVisible, setModalConfirmacaoVisible] = useState(false);
@@ -132,24 +132,7 @@ export default function Salas() {
   return (
     <View style={styles.mainContainer}>
       {/* Header da tela */}
-      <View style={styles.header}>
-        <Image
-          source={require("../img/logo-senai1.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <View>
-          <View>
-            <TouchableOpacity onPress={() => navigation.navigate("Home")}>
-              <MaterialCommunityIcons
-                name="account-circle"
-                size={45}
-                color="#555"
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+      <HeaderPrincipal/>
 
       {/* Seção para selecionar a data */}
       <View style={styles.selectDateContainer}>
