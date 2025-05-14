@@ -27,7 +27,9 @@ export default function Home({ navigation }) {
           <Text style={styles.text}>Salas</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.body}>
+        <TouchableOpacity 
+        style={styles.body}
+        onPress={()=> navigation.navigate("Perfil")}>
           <Image
             source={require("../img/icone-reserva.png")}
             style={styles.icone}

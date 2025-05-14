@@ -4,6 +4,10 @@ import Home from "./screens/HomeScreen";
 import TelaInicial from "./screens/Telainicial";
 import Header from "./components/Header";
 import Salas from "./screens/SalasScreen";
+import Perfil from "./screens/PerfilScreen"
+import HeaderPerfil from "./components/HeaderPerfil"
+
+
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
@@ -12,7 +16,7 @@ const Stack = createStackNavigator();
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator>
+      <Stack.Navigator screenOptions={{headerShow: false}}>
         {/* Tela de Login com Header */}
         <Stack.Screen 
           name="Login" 
@@ -29,6 +33,12 @@ export default function App() {
 
         {/* Outras Telas */}
         
+        <Stack.Screen 
+        name="Perfil" 
+        component={Perfil} 
+        options={{ header: () => <HeaderPerfil/>}}
+        />
+
         <Stack.Screen name="Home" component={Home} />
         <Stack.Screen name="TelaInicial" component={TelaInicial} />
         <Stack.Screen name="Salas" component={Salas} />
