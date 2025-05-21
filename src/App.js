@@ -36,7 +36,6 @@ export default function App() {
         <Stack.Screen 
         name="Perfil" 
         component={Perfil} 
-        options={{ header: () => <HeaderPerfil/>}}
         />
 
         <Stack.Screen name="Home" component={Home} />

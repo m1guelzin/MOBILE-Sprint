@@ -10,8 +10,10 @@ import {
 } from "react-native";
 import api from "../axios/axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store'
 import { Ionicons } from "@expo/vector-icons";
 import {useNavigation} from "@react-navigation/native"
+
 
 export default function Login() {
   const navigation = useNavigation();
@@ -21,6 +23,11 @@ export default function Login() {
     showPassword: true,
   });
 
+  async function saveToken(token) {
+    await SecureStore.setItemAsync("token", token);
+    console.log(token);
+  }
+
   async function handleLogin() {
     await api.postLogin(usuario).then(
       async (response) => {
@@ -28,6 +35,7 @@ export default function Login() {
         // Salvar os dados do usuário no AsyncStorage
         try {
           await AsyncStorage.setItem('usuarioLogado', JSON.stringify(usuarioLogado));
+          saveToken(response.data.token);
         } catch (storageError) {
           console.error("Erro ao salvar no AsyncStorage:", storageError);
           Alert.alert("Erro", "Não foi possível salvar os dados localmente.");

@@ -8,7 +8,9 @@ const SalaCard = ({ sala, onPress }) => (
       <MaterialCommunityIcons name="google-classroom" size={40} color="black" />
     </View>
     <View>
-      <Text style={styles.nome}>{sala.nome_da_sala}</Text>
+      <Text style={styles.nome}>Nome da Sala: {sala.nome_da_sala}</Text>
+      <Text style={styles.nome}>{sala.localizacao}</Text>
+      <Text style={styles.nome}>capacidade máx:{sala.capacidade}</Text>
     </View>
   </TouchableOpacity>
 );

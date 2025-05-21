@@ -1,18 +1,30 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from '../axios/axios'; // seu axios configurado
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
+  Image,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import api from "../axios/axios"; // seu axios configurado
+import { useNavigation } from "@react-navigation/native";
 
 const PerfilScreen = ({ navigation }) => {
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const navigation1 = useNavigation();
 
   async function carregarPerfil() {
     let id_usuario = null;
 
     // Buscar ID do AsyncStorage
     try {
-      const usuarioLogado = await AsyncStorage.getItem('usuarioLogado');
+      const usuarioLogado = await AsyncStorage.getItem("usuarioLogado");
       if (usuarioLogado) {
         const parsed = JSON.parse(usuarioLogado);
         id_usuario = parsed.id_usuario;
@@ -29,17 +41,23 @@ const PerfilScreen = ({ navigation }) => {
     }
 
     // Chamada da API via getUsuario
-    await api.getUsuario(id_usuario).then(
-      (response) => {
-        setUsuario(response.data.user);
-      },
-      (error) => {
-        console.error('Erro ao carregar perfil:', error);
-        Alert.alert("Erro", error.response?.data?.error || "Erro ao carregar perfil");
-      }
-    ).finally(() => {
-      setLoading(false);
-    });
+    await api
+      .getUsuario(id_usuario)
+      .then(
+        (response) => {
+          setUsuario(response.data.user);
+        },
+        (error) => {
+          console.error("Erro ao carregar perfil:", error);
+          Alert.alert(
+            "Erro",
+            error.response?.data?.error || "Erro ao carregar perfil"
+          );
+        }
+      )
+      .finally(() => {
+        setLoading(false);
+      });
   }
 
   useEffect(() => {
@@ -57,19 +75,39 @@ const PerfilScreen = ({ navigation }) => {
   if (!usuario) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={{ color: 'white' }}>Perfil não encontrado</Text>
+        <Text style={{ color: "white" }}>Perfil não encontrado</Text>
       </View>
     );
   }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.titleContainer}>
-          <Text style={styles.titleText}>PERFIL DE USUÁRIO</Text>
-        </View>
+      <View style={styles.header}>
+      <Image
+        source={require("../img/logo-senai1.png")}
+        style={styles.logo}
+        resizeMode="contain"
+      />
+      <View style={styles.buttonsContainer}>
+        <TouchableOpacity
+          style={styles.buttonHeader}
+          onPress={() => navigation1.navigate("Home")}
+        >
+          <Text style={styles.buttonText}>Voltar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.buttonHeader}
+          onPress={() => navigation1.navigate("Login")}
+        >
+          <Text style={styles.buttonText}>Sair</Text>
+        </TouchableOpacity>
+      </View>
+      </View>
+      <View style={styles.titleContainer}>
+        <Text style={styles.titleText}>PERFIL DE USUÁRIO</Text>
+      </View>
 
       <View style={styles.card}>
-
         <View style={styles.fieldLarge}>
           <Text>{usuario.nome}</Text>
         </View>
@@ -86,7 +124,10 @@ const PerfilScreen = ({ navigation }) => {
           <Text>{usuario.cpf}</Text>
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('MinhasReservas')}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate("MinhasReservas")}
+        >
           <Text>MINHAS RESERVAS ▼</Text>
         </TouchableOpacity>
       </View>
@@ -97,61 +138,90 @@ const PerfilScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: 'red',
+    backgroundColor: "red",
     padding: 20,
-    alignItems: 'stretch', // Deixa ele ocupar 100% horizontalmente
+    alignItems: "stretch", // Deixa ele ocupar 100% horizontalmente
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: 'red',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "red",
+    alignItems: "center",
+    justifyContent: "center",
   },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     padding: 20,
     borderRadius: 16,
-    width: '100%',
+    width: "100%",
     maxWidth: 500,
-    alignSelf: 'center', // Mantém o card no centro
+    alignSelf: "center", // Mantém o card no centro
+    marginTop: 10,
   },
   titleContainer: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 15,
     marginBottom: 25,
-    alignSelf: 'flex-start', // Joga o título pra esquerda
-    marginTop: 30,
+    alignSelf: "flex-start", // Joga o título pra esquerda
+    marginTop: 50,
   },
   titleText: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 16,
   },
   fieldLarge: {
-    backgroundColor: '#ddd',
+    backgroundColor: "#ddd",
     padding: 20,
     borderRadius: 15,
     marginBottom: 15,
-    width: '100%',
+    width: "100%",
   },
   fieldSmall: {
-    backgroundColor: '#ddd',
+    backgroundColor: "#ddd",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
     marginBottom: 10,
-    width: '60%',
+    width: "60%",
   },
   button: {
-    backgroundColor: '#ddd',
+    backgroundColor: "#ddd",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
     marginTop: 10,
-     width: '60%',
+    width: "60%",
   },
+  header: {
+    margin: -20,
+    height: 70,
+    backgroundColor: "#D3D3D3",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 10,
+  },
+  logo: {
+    width: 250,
+    height: 500,
+    resizeMode: "contain",
+  },
+    buttonsContainer: {
+    flexDirection: "row", // Alinha os botões em linha reta
+    alignItems: "center", // Alinha verticalmente os botões no centro
+  },
+  buttonHeader: {
+    backgroundColor: "red",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 5,
+    marginLeft: 10, // Espaço entre os botões
+  },
+  buttonText: {
+    color: "white",
+    fontWeight: "bold",
+  }, 
 });
-
 
 export default PerfilScreen;

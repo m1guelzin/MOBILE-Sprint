@@ -1,7 +1,7 @@
 import  axios  from "axios";
 
 const api = axios.create({
-    baseURL:"http://10.89.240.86:3000/project-senai/api/v1",
+    baseURL:"http://10.89.240.85:3000/project-senai/api/v1",
     headers:{
         "accept":"application/json"
     }
@@ -15,6 +15,7 @@ const sheets = {
     getSalasHorariosDisponiveis:(data) => api.get(`salas/horarios-disponiveis/${data})`),
     criarReserva: (reservaData) => api.post("reservas/", reservaData),
     getUsuario: (id_usuario) => api.get(`user/${id_usuario}`),
+    getReservaById: (id_usuario) => api.get(`reservas/user/${id_usuario}`)
 }
 
 export default sheets;
