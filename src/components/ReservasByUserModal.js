@@ -18,9 +18,9 @@ const ReservasByIdModal = ({ visible, onClose, reservas }) => {
             {reservas.length > 0 ? (
               reservas.map((reservas, index) => (
                 <View key={index} style={styles.reservaItem}>
+                  <Text>Nome da Sala: {reservas.nome_da_sala}</Text>
                   <Text>Data: {reservas.data_reserva}</Text>
-                  <Text>Sala: {reservas.horario_inicio}</Text>
-                  <Text>Horário: {reservas.horario}</Text>
+                  <Text>Horário: {reservas.horario_inicio}</Text>
                 </View>
               ))
             ) : (

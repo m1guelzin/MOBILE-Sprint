@@ -15,7 +15,7 @@ const HeaderPrincipal = () => {
       />
       <View>
         <View>
-          <TouchableOpacity onPress={() => navigation.navigate("Home")}>
+          <TouchableOpacity onPress={() => navigation.navigate("Perfil")}>
             <MaterialCommunityIcons
               name="account-circle"
               size={45}

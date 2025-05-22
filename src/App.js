@@ -16,7 +16,7 @@ const Stack = createStackNavigator();
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{headerShow: false}}>
+      <Stack.Navigator screenOptions={{headerShow: true}}>
         {/* Tela de Login com Header */}
         <Stack.Screen 
           name="Login" 

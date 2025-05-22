@@ -9,11 +9,9 @@ import {
   Image,
 } from "react-native";
 import api from "../axios/axios";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as SecureStore from 'expo-secure-store'
 import { Ionicons } from "@expo/vector-icons";
-import {useNavigation} from "@react-navigation/native"
-
+import { useNavigation } from "@react-navigation/native";
+import { saveUser, saveToken } from "../utils/SecureStore";
 
 export default function Login() {
   const navigation = useNavigation();
@@ -23,38 +21,34 @@ export default function Login() {
     showPassword: true,
   });
 
-  async function saveToken(token) {
-    await SecureStore.setItemAsync("token", token);
-    console.log(token);
-  }
-
   async function handleLogin() {
     await api.postLogin(usuario).then(
       async (response) => {
         const usuarioLogado = response.data.user;
         // Salvar os dados do usuário no AsyncStorage
         try {
-          await AsyncStorage.setItem('usuarioLogado', JSON.stringify(usuarioLogado));
-          saveToken(response.data.token);
+          await saveUser(response.data.user);
+          await saveToken(response.data.token);
         } catch (storageError) {
-          console.error("Erro ao salvar no AsyncStorage:", storageError);
+          console.error("Erro ao salvar no SecureStorage:", storageError);
           Alert.alert("Erro", "Não foi possível salvar os dados localmente.");
           return;
         }
-  
+
         Alert.alert("OK", response.data.message);
         navigation.navigate("Home");
       },
       (error) => {
-        Alert.alert("Erro", error.response?.data?.error || "Erro ao fazer login");
+        Alert.alert(
+          "Erro",
+          error.response?.data?.error || "Erro ao fazer login"
+        );
       }
     );
   }
-  
 
   return (
     <View style={styles.container}>
-     
       <View style={styles.body}>
         <Image source={require("../img/logo-senai1.png")} style={styles.logo} />
         <TextInput
@@ -116,7 +110,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "red",
   },
-  
+
   body: {
     width: "60%",
     backgroundColor: "white",
