@@ -11,7 +11,7 @@ import {
 import api from "../axios/axios";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { saveUser, saveToken } from "../utils/SecureStore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Login() {
   const navigation = useNavigation();
@@ -22,29 +22,23 @@ export default function Login() {
   });
 
   async function handleLogin() {
-    await api.postLogin(usuario).then(
-      async (response) => {
-        const usuarioLogado = response.data.user;
-        // Salvar os dados do usuário no AsyncStorage
-        try {
-          await saveUser(response.data.user);
-          await saveToken(response.data.token);
-        } catch (storageError) {
-          console.error("Erro ao salvar no SecureStorage:", storageError);
-          Alert.alert("Erro", "Não foi possível salvar os dados localmente.");
-          return;
-        }
-
-        Alert.alert("OK", response.data.message);
-        navigation.navigate("Home");
-      },
-      (error) => {
-        Alert.alert(
-          "Erro",
-          error.response?.data?.error || "Erro ao fazer login"
-        );
-      }
-    );
+    try {
+      const response = await api.postLogin(usuario);
+      const { token, user, message } = response.data;
+      // Salvar token e dados do usuário no AsyncStorage
+      console.log("Token:", token);
+      await AsyncStorage.setItem("userToken", response.data.token);
+      await AsyncStorage.setItem("usuarioLogado", JSON.stringify(user));
+      Alert.alert("Sucesso", message || "Login realizado com sucesso!");
+      navigation.navigate("Home");
+    } catch (error) {
+      console.error("Erro ao fazer login:", error);
+      Alert.alert(
+        "Erro",
+        error.response?.data?.error ||
+          "Erro ao fazer login. Verifique suas credenciais."
+      );
+    } 
   }
 
   return (

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,11 +10,11 @@ import {
   Image,
   TextInput,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../axios/axios";
 import { useNavigation } from "@react-navigation/native";
-import ReservasByIdModal from "../components/ReservasByUserModal";
+import ReservasByIdModal from "../components/ReservasByUserModal"; // Verifique o nome do arquivo, está como 'ReservasByUserModal'
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { getUser, getToken } from "../utils/SecureStore";
 
 const PerfilScreen = () => {
   const [usuario, setUsuario] = useState(null);
@@ -25,11 +25,42 @@ const PerfilScreen = () => {
   const [reservas, setReservas] = useState([]);
   const navigation = useNavigation();
 
-  async function carregarPerfil() {
+  // Funções locais para obter dados do AsyncStorage
+  const getUser = async () => {
+    try {
+      const userData = await AsyncStorage.getItem("usuarioLogado");
+      return userData ? JSON.parse(userData) : null;
+    } catch (error) {
+      console.error("Erro ao recuperar usuário:", error);
+      return null;
+    }
+  };
+
+  // Não precisamos de getToken aqui, pois o interceptor do Axios já injeta o token automaticamente.
+  // const getToken = async () => { /* ... */ };
+
+  // Função para carregar as reservas do usuário
+  const carregarReservas = useCallback(async () => {
+    // console.log("carregarReservas: Recarregando lista de reservas..."); // Desativei para reduzir logs
+    try {
+      const user = await getUser();
+      if (user && user.id_usuario) {
+        const response = await api.getReservaById(user.id_usuario);
+        setReservas(response.data.reservas || []);
+      }
+    } catch (error) {
+      console.log("carregarReservas: Erro ao carregar reservas:", error.response?.data?.message || error.message);
+      
+    }
+  }, []); // Dependências vazias: esta função não depende de nada que mude entre renders
+
+  // Função para carregar o perfil do usuário
+  const carregarPerfil = useCallback(async () => {
+    // console.log("carregarPerfil: Carregando dados do perfil..."); // Desativei para reduzir logs
     try {
       const usuario = await getUser();
       if (!usuario) {
-        Alert.alert("Erro", "Usuário não encontrado.");
+        Alert.alert("Erro", "Usuário não encontrado. Redirecionando para login.");
         navigation.navigate("Login");
         return;
       }
@@ -37,32 +68,32 @@ const PerfilScreen = () => {
       const response = await api.getUsuario(usuario.id_usuario);
       setUsuario(response.data.user);
       setDadosEditados(response.data.user);
+
+      await carregarReservas(); // Carrega as reservas junto com o perfil
     } catch (error) {
-      console.error("Erro ao carregar perfil:", error);
-      Alert.alert("Erro", "Erro ao carregar perfil");
+      console.error("carregarPerfil: Erro ao carregar perfil:", error.response?.data?.message || error.message);
+      Alert.alert("Erro", "Erro ao carregar perfil.");
     } finally {
       setLoading(false);
     }
-  }
+  }, [carregarReservas, navigation]); // Depende de carregarReservas e navigation
 
   async function abrirModalReservas() {
     setModalVisible(true);
-    try {
-      const usuario = await getUser();
-      const response = await api.getReservaById(usuario.id_usuario);
-      setReservas(response.data.reservas || []);
-    } catch (error) {
-      console.error("Erro ao carregar reservas:", error);
-    }
+    // Garante que a lista de reservas está atualizada ao ABRIR o modal
+    await carregarReservas();
   }
 
   async function salvarEdicao() {
     try {
       const usuarioArmazenado = await getUser();
-      const token = await getToken();
 
-      if (!usuarioArmazenado || !token) {
-        Alert.alert("Erro", "Sessão expirada ou inválida.");
+      if (!usuarioArmazenado) {
+        Alert.alert(
+          "Erro",
+          "Sessão expirada ou inválida. Por favor, faça login novamente."
+        );
+        navigation.navigate("Login");
         return;
       }
 
@@ -71,24 +102,31 @@ const PerfilScreen = () => {
         nome: dadosEditados.nome,
         telefone: dadosEditados.telefone,
         email: dadosEditados.email,
-        senha: usuarioArmazenado.senha, // senha recuperada no login
+        senha: dadosEditados.senha || usuarioArmazenado.senha,
         cpf: dadosEditados.cpf,
       };
 
-      await api.atualizarUsuario(payload, token);
+      // console.log("Dados enviados para atualização:", payload); // Desativei para reduzir logs
 
-      setUsuario(dadosEditados); // Atualiza na tela
+      await api.atualizarUsuario(payload);
+
+      setUsuario(dadosEditados);
       setModoEdicao(false);
       Alert.alert("Sucesso", "Dados atualizados com sucesso!");
     } catch (error) {
-      console.error("Erro ao salvar edição:", error);
-      Alert.alert("Erro", error.response?.data?.error || "Erro ao salvar os dados");
+      console.error("Erro ao salvar edição:", error.response?.data?.error || error.message);
+      Alert.alert(
+        "Erro",
+        error.response?.data?.error ||
+          "Erro ao salvar os dados. Verifique sua conexão ou tente novamente."
+      );
     }
   }
 
+  // Efeito para carregar o perfil (e as reservas) na montagem do componente
   useEffect(() => {
     carregarPerfil();
-  }, []);
+  }, [carregarPerfil]); // A dependência agora é a função carregarPerfil (estável devido ao useCallback)
 
   if (loading) {
     return (
@@ -140,57 +178,89 @@ const PerfilScreen = () => {
             <TextInput
               style={styles.input}
               value={dadosEditados.nome}
-              onChangeText={(text) => setDadosEditados({ ...dadosEditados, nome: text })}
+              onChangeText={(text) =>
+                setDadosEditados({ ...dadosEditados, nome: text })
+              }
               placeholder="Nome"
             />
             <TextInput
               style={styles.input}
               value={dadosEditados.email}
-              onChangeText={(text) => setDadosEditados({ ...dadosEditados, email: text })}
+              onChangeText={(text) =>
+                setDadosEditados({ ...dadosEditados, email: text })
+              }
               placeholder="Email"
               keyboardType="email-address"
             />
             <TextInput
               style={styles.input}
               value={dadosEditados.telefone}
-              onChangeText={(text) => setDadosEditados({ ...dadosEditados, telefone: text })}
+              onChangeText={(text) =>
+                setDadosEditados({ ...dadosEditados, telefone: text })
+              }
               placeholder="Telefone"
               keyboardType="phone-pad"
             />
             <TextInput
               style={styles.input}
               value={dadosEditados.cpf}
-              onChangeText={(text) => setDadosEditados({ ...dadosEditados, cpf: text })}
+              onChangeText={(text) =>
+                setDadosEditados({ ...dadosEditados, cpf: text })
+              }
               placeholder="CPF"
               keyboardType="numeric"
             />
             <TextInput
               style={styles.input}
               value={dadosEditados.senha}
-              onChangeText={(text) => setDadosEditados({ ...dadosEditados, senha: text })}
+              onChangeText={(text) =>
+                setDadosEditados({ ...dadosEditados, senha: text })
+              }
               placeholder="SENHA"
+              secureTextEntry={true}
             />
 
             <TouchableOpacity style={styles.button} onPress={salvarEdicao}>
               <Text style={{ color: "white" }}>Salvar</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, { backgroundColor: "#888" }]} onPress={() => setModoEdicao(false)}>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: "#888" }]}
+              onPress={() => setModoEdicao(false)}
+            >
               <Text style={{ color: "white" }}>Cancelar</Text>
             </TouchableOpacity>
           </>
         ) : (
           <>
-            <View style={styles.fieldLarge}><Text>Nome: {usuario.nome}</Text></View>
-            <View style={styles.fieldLarge}><Text>Email: {usuario.email}</Text></View>
-            <View style={styles.fieldSmall}><Text>Telefone: {usuario.telefone}</Text></View>
-            <View style={styles.fieldSmall}><Text>CPF: {usuario.cpf}</Text></View>
+            <View style={styles.fieldLarge}>
+              <Text>Nome: {usuario.nome}</Text>
+            </View>
+            <View style={styles.fieldLarge}>
+              <Text>Email: {usuario.email}</Text>
+            </View>
+            <View style={styles.fieldSmall}>
+              <Text>Telefone: {usuario.telefone}</Text>
+            </View>
+            <View style={styles.fieldSmall}>
+              <Text>CPF: {usuario.cpf}</Text>
+            </View>
 
-            <TouchableOpacity style={styles.button} onPress={abrirModalReservas}>
-              <MaterialCommunityIcons name="google-classroom" size={20} color="black" />
-              <Text>  MINHAS RESERVAS</Text>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={abrirModalReservas}
+            >
+              <MaterialCommunityIcons
+                name="google-classroom"
+                size={20}
+                color="white"
+              />
+              <Text style={{ color: "white" }}> MINHAS RESERVAS</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.button, { backgroundColor: "#007AFF", marginTop: 20 }]} onPress={() => setModoEdicao(true)}>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: "red", marginTop: 5 }]}
+              onPress={() => setModoEdicao(true)}
+            >
               <Text style={{ color: "white" }}>Editar Perfil</Text>
             </TouchableOpacity>
           </>
@@ -201,6 +271,7 @@ const PerfilScreen = () => {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         reservas={reservas}
+        onReservaDeletada={carregarReservas}
       />
     </ScrollView>
   );
@@ -250,11 +321,10 @@ const styles = StyleSheet.create({
   },
   fieldSmall: {
     backgroundColor: "#ddd",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    marginBottom: 10,
-    width: "60%",
+    padding: 20,
+    borderRadius: 15,
+    marginBottom: 15,
+    width: "100%",
   },
   input: {
     backgroundColor: "#eee",
@@ -263,7 +333,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   button: {
-    backgroundColor: "#FF2420",
+    backgroundColor: "red",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
