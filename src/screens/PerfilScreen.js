@@ -11,9 +11,9 @@ import {
   TextInput,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import api from "../axios/axios";
+import api from "../axios/axios"; // Certifique-se de que seu 'api' está configurado corretamente com axios
 import { useNavigation } from "@react-navigation/native";
-import ReservasByIdModal from "../components/ReservasByUserModal"; // Verifique o nome do arquivo, está como 'ReservasByUserModal'
+import ReservasByIdModal from "../components/ReservasByUserModal"; // Verifique se o caminho e o nome do arquivo estão corretos
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 const PerfilScreen = () => {
@@ -22,68 +22,79 @@ const PerfilScreen = () => {
   const [modoEdicao, setModoEdicao] = useState(false);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
-  const [reservas, setReservas] = useState([]);
+  const [reservas, setReservas] = useState([]); // Estado que armazena as reservas do usuário
   const navigation = useNavigation();
 
-  // Funções locais para obter dados do AsyncStorage
+  // Função para obter dados do usuário logado no AsyncStorage
   const getUser = async () => {
     try {
       const userData = await AsyncStorage.getItem("usuarioLogado");
       return userData ? JSON.parse(userData) : null;
     } catch (error) {
-      console.error("Erro ao recuperar usuário:", error);
+      console.error("Erro ao recuperar usuário do AsyncStorage:", error);
       return null;
     }
   };
 
-  // Não precisamos de getToken aqui, pois o interceptor do Axios já injeta o token automaticamente.
-  // const getToken = async () => { /* ... */ };
-
-  // Função para carregar as reservas do usuário
+  // Função para carregar as reservas do usuário através da API
   const carregarReservas = useCallback(async () => {
-    // console.log("carregarReservas: Recarregando lista de reservas..."); // Desativei para reduzir logs
     try {
       const user = await getUser();
       if (user && user.id_usuario) {
         const response = await api.getReservaById(user.id_usuario);
+        // Atualiza o estado 'reservas' com os dados da API
         setReservas(response.data.reservas || []);
       }
     } catch (error) {
-      console.log("carregarReservas: Erro ao carregar reservas:", error.response?.data?.message || error.message);
-      
+      console.log(
+        "Erro ao carregar reservas:",
+        error.response?.data?.message || error.message
+      );
     }
-  }, []); // Dependências vazias: esta função não depende de nada que mude entre renders
+  }, []); // Dependências vazias, pois getUser é uma função auxiliar e não muda.
 
-  // Função para carregar o perfil do usuário
+  // Callback que será acionado pelo modal quando uma reserva for deletada
+  // Ele recebe o ID da reserva deletada e atualiza o estado 'reservas' localmente.
+  const handleReservaDeletada = useCallback((idReservaDeletada) => {
+    setReservas((currentReservas) =>
+      currentReservas.filter((reserva) => reserva.id_reserva !== idReservaDeletada)
+    );
+  }, []); // Dependências vazias, pois a função não depende de variáveis externas que mudem.
+
+  // Função para carregar os dados do perfil do usuário e suas reservas
   const carregarPerfil = useCallback(async () => {
-    // console.log("carregarPerfil: Carregando dados do perfil..."); // Desativei para reduzir logs
     try {
-      const usuario = await getUser();
-      if (!usuario) {
+      const usuarioArmazenado = await getUser();
+      if (!usuarioArmazenado) {
         Alert.alert("Erro", "Usuário não encontrado. Redirecionando para login.");
         navigation.navigate("Login");
         return;
       }
 
-      const response = await api.getUsuario(usuario.id_usuario);
+      const response = await api.getUsuario(usuarioArmazenado.id_usuario);
       setUsuario(response.data.user);
       setDadosEditados(response.data.user);
 
       await carregarReservas(); // Carrega as reservas junto com o perfil
     } catch (error) {
-      console.error("carregarPerfil: Erro ao carregar perfil:", error.response?.data?.message || error.message);
+      console.error(
+        "Erro ao carregar perfil:",
+        error.response?.data?.message || error.message
+      );
       Alert.alert("Erro", "Erro ao carregar perfil.");
     } finally {
       setLoading(false);
     }
   }, [carregarReservas, navigation]); // Depende de carregarReservas e navigation
 
+  // Função para abrir o modal de reservas
   async function abrirModalReservas() {
     setModalVisible(true);
     // Garante que a lista de reservas está atualizada ao ABRIR o modal
     await carregarReservas();
   }
 
+  // Função para salvar as edições do perfil
   async function salvarEdicao() {
     try {
       const usuarioArmazenado = await getUser();
@@ -102,19 +113,20 @@ const PerfilScreen = () => {
         nome: dadosEditados.nome,
         telefone: dadosEditados.telefone,
         email: dadosEditados.email,
-        senha: dadosEditados.senha || usuarioArmazenado.senha,
+        senha: dadosEditados.senha || usuarioArmazenado.senha, // Mantém a senha antiga se não for alterada
         cpf: dadosEditados.cpf,
       };
 
-      // console.log("Dados enviados para atualização:", payload); // Desativei para reduzir logs
-
       await api.atualizarUsuario(payload);
 
-      setUsuario(dadosEditados);
-      setModoEdicao(false);
+      setUsuario(dadosEditados); // Atualiza o estado 'usuario' com os dados editados
+      setModoEdicao(false); // Sai do modo de edição
       Alert.alert("Sucesso", "Dados atualizados com sucesso!");
     } catch (error) {
-      console.error("Erro ao salvar edição:", error.response?.data?.error || error.message);
+      console.error(
+        "Erro ao salvar edição:",
+        error.response?.data?.error || error.message
+      );
       Alert.alert(
         "Erro",
         error.response?.data?.error ||
@@ -123,11 +135,12 @@ const PerfilScreen = () => {
     }
   }
 
-  // Efeito para carregar o perfil (e as reservas) na montagem do componente
+  // Efeito para carregar o perfil e as reservas na montagem do componente
   useEffect(() => {
     carregarPerfil();
-  }, [carregarPerfil]); // A dependência agora é a função carregarPerfil (estável devido ao useCallback)
+  }, [carregarPerfil]); // A dependência agora é a função carregarPerfil (que é estável devido ao useCallback)
 
+  // Exibe um indicador de carregamento enquanto os dados são buscados
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -136,6 +149,7 @@ const PerfilScreen = () => {
     );
   }
 
+  // Exibe uma mensagem se o perfil não for encontrado após o carregamento
   if (!usuario) {
     return (
       <View style={styles.loadingContainer}>
@@ -174,6 +188,7 @@ const PerfilScreen = () => {
 
       <View style={styles.card}>
         {modoEdicao ? (
+          // Modo de Edição
           <>
             <TextInput
               style={styles.input}
@@ -216,7 +231,7 @@ const PerfilScreen = () => {
               onChangeText={(text) =>
                 setDadosEditados({ ...dadosEditados, senha: text })
               }
-              placeholder="SENHA"
+              placeholder="SENHA (deixe em branco para manter a atual)"
               secureTextEntry={true}
             />
 
@@ -231,6 +246,7 @@ const PerfilScreen = () => {
             </TouchableOpacity>
           </>
         ) : (
+          // Modo de Visualização
           <>
             <View style={styles.fieldLarge}>
               <Text>Nome: {usuario.nome}</Text>
@@ -267,11 +283,12 @@ const PerfilScreen = () => {
         )}
       </View>
 
+      {/* Componente Modal de Reservas */}
       <ReservasByIdModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
-        reservas={reservas}
-        onReservaDeletada={carregarReservas}
+        reservas={reservas} // As reservas passadas para o modal são as do estado 'reservas' da PerfilScreen
+        onReservaDeletada={handleReservaDeletada} // Callback que será chamado ao deletar uma reserva
       />
     </ScrollView>
   );

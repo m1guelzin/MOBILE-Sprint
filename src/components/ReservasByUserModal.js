@@ -26,11 +26,12 @@ const ReservasByIdModal = ({ visible, onClose, reservas, onReservaDeletada }) =>
         await api.deletarReserva(reservaToDelete.id_reserva);
         Alert.alert("Sucesso", "Reserva cancelada com sucesso!");
         setConfirmDeleteModalVisible(false);
-        setReservaToDelete(null);
 
+        // Chame onReservaDeletada passando o ID da reserva deletada
         if (onReservaDeletada) {
-          onReservaDeletada();
+          onReservaDeletada(reservaToDelete.id_reserva);
         }
+        setReservaToDelete(null); // Limpe a reserva para deletar
       } catch (error) {
         console.log("Erro ao deletar reserva:", error);
         Alert.alert(
@@ -59,7 +60,7 @@ const ReservasByIdModal = ({ visible, onClose, reservas, onReservaDeletada }) =>
                     onPress={() => handleOpenConfirmDelete(reserva)}
                     style={styles.deleteButton}
                   >
-                    <MaterialCommunityIcons name="trash-can-outline" size={24} color="red" />
+                    <MaterialCommunityIcons name="trash-can-outline" size={34} color="red" />
                   </TouchableOpacity>
                 </View>
               ))
