@@ -32,7 +32,7 @@ export default function Login() {
       Alert.alert("Sucesso", message || "Login realizado com sucesso!");
       navigation.navigate("Home");
     } catch (error) {
-      console.error("Erro ao fazer login:", error);
+      console.log("Erro ao fazer login:", error);
       Alert.alert(
         "Erro",
         error.response?.data?.error ||

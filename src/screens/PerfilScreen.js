@@ -11,9 +11,9 @@ import {
   TextInput,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import api from "../axios/axios"; // Certifique-se de que seu 'api' está configurado corretamente com axios
+import api from "../axios/axios";
 import { useNavigation } from "@react-navigation/native";
-import ReservasByIdModal from "../components/ReservasByUserModal"; // Verifique se o caminho e o nome do arquivo estão corretos
+import ReservasByIdModal from "../components/ReservasByUserModal";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 const PerfilScreen = () => {
@@ -22,27 +22,24 @@ const PerfilScreen = () => {
   const [modoEdicao, setModoEdicao] = useState(false);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
-  const [reservas, setReservas] = useState([]); // Estado que armazena as reservas do usuário
+  const [reservas, setReservas] = useState([]);
   const navigation = useNavigation();
 
-  // Função para obter dados do usuário logado no AsyncStorage
   const getUser = async () => {
     try {
       const userData = await AsyncStorage.getItem("usuarioLogado");
       return userData ? JSON.parse(userData) : null;
     } catch (error) {
-      console.error("Erro ao recuperar usuário do AsyncStorage:", error);
+      console.log("Erro ao recuperar usuário do AsyncStorage:", error);
       return null;
     }
   };
 
-  // Função para carregar as reservas do usuário através da API
   const carregarReservas = useCallback(async () => {
     try {
       const user = await getUser();
       if (user && user.id_usuario) {
         const response = await api.getReservaById(user.id_usuario);
-        // Atualiza o estado 'reservas' com os dados da API
         setReservas(response.data.reservas || []);
       }
     } catch (error) {
@@ -51,17 +48,14 @@ const PerfilScreen = () => {
         error.response?.data?.message || error.message
       );
     }
-  }, []); // Dependências vazias, pois getUser é uma função auxiliar e não muda.
+  }, []);
 
-  // Callback que será acionado pelo modal quando uma reserva for deletada
-  // Ele recebe o ID da reserva deletada e atualiza o estado 'reservas' localmente.
   const handleReservaDeletada = useCallback((idReservaDeletada) => {
     setReservas((currentReservas) =>
       currentReservas.filter((reserva) => reserva.id_reserva !== idReservaDeletada)
     );
-  }, []); // Dependências vazias, pois a função não depende de variáveis externas que mudem.
+  }, []);
 
-  // Função para carregar os dados do perfil do usuário e suas reservas
   const carregarPerfil = useCallback(async () => {
     try {
       const usuarioArmazenado = await getUser();
@@ -75,9 +69,9 @@ const PerfilScreen = () => {
       setUsuario(response.data.user);
       setDadosEditados(response.data.user);
 
-      await carregarReservas(); // Carrega as reservas junto com o perfil
+      await carregarReservas();
     } catch (error) {
-      console.error(
+      console.log (
         "Erro ao carregar perfil:",
         error.response?.data?.message || error.message
       );
@@ -85,16 +79,13 @@ const PerfilScreen = () => {
     } finally {
       setLoading(false);
     }
-  }, [carregarReservas, navigation]); // Depende de carregarReservas e navigation
+  }, [carregarReservas, navigation]);
 
-  // Função para abrir o modal de reservas
   async function abrirModalReservas() {
     setModalVisible(true);
-    // Garante que a lista de reservas está atualizada ao ABRIR o modal
     await carregarReservas();
   }
 
-  // Função para salvar as edições do perfil
   async function salvarEdicao() {
     try {
       const usuarioArmazenado = await getUser();
@@ -113,17 +104,17 @@ const PerfilScreen = () => {
         nome: dadosEditados.nome,
         telefone: dadosEditados.telefone,
         email: dadosEditados.email,
-        senha: dadosEditados.senha || usuarioArmazenado.senha, // Mantém a senha antiga se não for alterada
-        cpf: dadosEditados.cpf,
+        senha: dadosEditados.senha || usuarioArmazenado.senha,
+        cpf: usuarioArmazenado.cpf, // Mantém o CPF original não editável na tela
       };
 
       await api.atualizarUsuario(payload);
 
-      setUsuario(dadosEditados); // Atualiza o estado 'usuario' com os dados editados
-      setModoEdicao(false); // Sai do modo de edição
+      setUsuario(dadosEditados);
+      setModoEdicao(false);
       Alert.alert("Sucesso", "Dados atualizados com sucesso!");
     } catch (error) {
-      console.error(
+      console.log(
         "Erro ao salvar edição:",
         error.response?.data?.error || error.message
       );
@@ -135,12 +126,10 @@ const PerfilScreen = () => {
     }
   }
 
-  // Efeito para carregar o perfil e as reservas na montagem do componente
   useEffect(() => {
     carregarPerfil();
-  }, [carregarPerfil]); // A dependência agora é a função carregarPerfil (que é estável devido ao useCallback)
+  }, [carregarPerfil]);
 
-  // Exibe um indicador de carregamento enquanto os dados são buscados
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -149,7 +138,6 @@ const PerfilScreen = () => {
     );
   }
 
-  // Exibe uma mensagem se o perfil não for encontrado após o carregamento
   if (!usuario) {
     return (
       <View style={styles.loadingContainer}>
@@ -188,7 +176,6 @@ const PerfilScreen = () => {
 
       <View style={styles.card}>
         {modoEdicao ? (
-          // Modo de Edição
           <>
             <TextInput
               style={styles.input}
@@ -216,7 +203,7 @@ const PerfilScreen = () => {
               placeholder="Telefone"
               keyboardType="phone-pad"
             />
-           
+            {/* CPF REMOVIDO AQUI NO MODO DE EDIÇÃO */}
             <TextInput
               style={styles.input}
               value={dadosEditados.senha}
@@ -228,28 +215,27 @@ const PerfilScreen = () => {
             />
 
             <TouchableOpacity style={styles.button} onPress={salvarEdicao}>
-              <Text style={{ color: "white" }}>Salvar</Text>
+              <Text style={{ color: "white", fontSize: 18}}>Salvar</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, { backgroundColor: "#888" }]}
               onPress={() => setModoEdicao(false)}
             >
-              <Text style={{ color: "white" }}>Cancelar</Text>
+              <Text style={{ color: "white", fontSize: 18 }}>Cancelar</Text>
             </TouchableOpacity>
           </>
         ) : (
-          // Modo de Visualização
           <>
-            <View style={styles.fieldLarge}>
+            <View style={styles.fieldDisplay}>
               <Text>Nome: {usuario.nome}</Text>
             </View>
-            <View style={styles.fieldLarge}>
+            <View style={styles.fieldDisplay}>
               <Text>Email: {usuario.email}</Text>
             </View>
-            <View style={styles.fieldSmall}>
+            <View style={styles.fieldDisplay}>
               <Text>Telefone: {usuario.telefone}</Text>
             </View>
-            <View style={styles.fieldSmall}>
+            <View style={styles.fieldDisplay}>
               <Text>CPF: {usuario.cpf}</Text>
             </View>
 
@@ -257,12 +243,7 @@ const PerfilScreen = () => {
               style={styles.button}
               onPress={abrirModalReservas}
             >
-              <MaterialCommunityIcons
-                name="google-classroom"
-                size={25}
-                color="white"
-              />
-              <Text style={{ color: "white", fontSize: 18 }}> MINHAS RESERVAS</Text>
+              <Text style={{ color: "white", fontSize: 18 }}>Minhas Reservas</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -275,12 +256,11 @@ const PerfilScreen = () => {
         )}
       </View>
 
-      {/* Componente Modal de Reservas */}
       <ReservasByIdModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
-        reservas={reservas} // As reservas passadas para o modal são as do estado 'reservas' da PerfilScreen
-        onReservaDeletada={handleReservaDeletada} // Callback que será chamado ao deletar uma reserva
+        reservas={reservas}
+        onReservaDeletada={handleReservaDeletada}
       />
     </ScrollView>
   );
@@ -288,10 +268,12 @@ const PerfilScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flexGrow: 1, // Crucial para o ScrollView se esticar
     backgroundColor: "red",
     padding: 20,
-    alignItems: "stretch",
+    alignItems: "stretch", // Garante que os filhos estiquem horizontalmente
+    justifyContent: 'space-between', // Distribui o espaço entre os elementos principais
+    paddingBottom: 50, // Espaço extra na parte inferior para rolagem
   },
   loadingContainer: {
     flex: 1,
@@ -301,12 +283,15 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: "white",
-    padding: 20,
+    padding: 30, // **Aumentado o padding**
     borderRadius: 16,
     width: "100%",
     maxWidth: 500,
     alignSelf: "center",
-    marginTop: 10,
+    marginTop: 20, // **Aumentado a margem superior**
+    marginBottom: 100, // **Adicionado margem inferior**
+    flexGrow: 1, // Permite que o card se estique
+    justifyContent: 'center', // Centraliza o conteúdo verticalmente dentro do card
   },
   titleContainer: {
     backgroundColor: "white",
@@ -319,38 +304,32 @@ const styles = StyleSheet.create({
   },
   titleText: {
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: 22,
   },
-  fieldLarge: {
+  fieldDisplay: { // Novo estilo para os campos de exibição
     backgroundColor: "#ddd",
-    padding: 20,
+    padding: 25, // **Aumentado o padding**
     borderRadius: 15,
-    marginBottom: 15,
-    width: "100%",
-  },
-  fieldSmall: {
-    backgroundColor: "#ddd",
-    padding: 20,
-    borderRadius: 15,
-    marginBottom: 15,
+    marginBottom: 15, // **Aumentado a margem inferior**
     width: "100%",
   },
   input: {
-    backgroundColor: "#eee",
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
+    backgroundColor: "#ddd",
+    padding: 25, // **Aumentado o padding**
+    borderRadius: 15,
+    marginBottom: 15, // **Aumentado a margem inferior**
+    width: "100%",
   },
   button: {
     backgroundColor: "red",
-    paddingVertical: 10,
+    paddingVertical: 18, // **Aumentado o padding vertical**
     paddingHorizontal: 20,
-    borderRadius: 5,
+    borderRadius: 10,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 2,
-    marginBottom: 10,
+    marginTop: 10, // **Aumentado a margem superior dos botões**
+    marginBottom: 5,
   },
   header: {
     margin: -20,

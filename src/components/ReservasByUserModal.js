@@ -71,7 +71,7 @@ const ReservasByIdModal = ({ visible, onClose, reservas, onReservaDeletada }) =>
             )}
           </ScrollView>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={{ color: "white" }}>Fechar</Text>
+            <Text style={{ color: "white", fontSize: 18 }}>Fechar</Text>
           </TouchableOpacity>
         </View>
 
