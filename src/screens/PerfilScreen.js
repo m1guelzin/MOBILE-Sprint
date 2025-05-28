@@ -216,15 +216,7 @@ const PerfilScreen = () => {
               placeholder="Telefone"
               keyboardType="phone-pad"
             />
-            <TextInput
-              style={styles.input}
-              value={dadosEditados.cpf}
-              onChangeText={(text) =>
-                setDadosEditados({ ...dadosEditados, cpf: text })
-              }
-              placeholder="CPF"
-              keyboardType="numeric"
-            />
+           
             <TextInput
               style={styles.input}
               value={dadosEditados.senha}
@@ -267,17 +259,17 @@ const PerfilScreen = () => {
             >
               <MaterialCommunityIcons
                 name="google-classroom"
-                size={20}
+                size={25}
                 color="white"
               />
-              <Text style={{ color: "white" }}> MINHAS RESERVAS</Text>
+              <Text style={{ color: "white", fontSize: 18 }}> MINHAS RESERVAS</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.button, { backgroundColor: "red", marginTop: 5 }]}
               onPress={() => setModoEdicao(true)}
             >
-              <Text style={{ color: "white" }}>Editar Perfil</Text>
+              <Text style={{ color: "white", fontSize: 16 }}>Editar Perfil</Text>
             </TouchableOpacity>
           </>
         )}
@@ -362,7 +354,7 @@ const styles = StyleSheet.create({
   },
   header: {
     margin: -20,
-    height: 70,
+    height: 85,
     backgroundColor: "#D3D3D3",
     flexDirection: "row",
     justifyContent: "space-between",
@@ -370,8 +362,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   logo: {
-    width: 220,
-    height: 500,
+    width: 250,
     resizeMode: "contain",
   },
   buttonsContainer: {
@@ -388,6 +379,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "white",
     fontWeight: "bold",
+    fontSize: 17
   },
 });
 

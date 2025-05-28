@@ -4,20 +4,16 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
-  Modal,
   StyleSheet,
-  Image,
   Alert,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../axios/axios";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import SalaCard from "../components/SalaCard";
 import HorariosModal from "../components/HorariosModal";
 import ConfirmacaoModal from "../components/ConfirmacaoModal";
 import HeaderPrincipal from "../components/HeaderPrincipal";
-import {useNavigation} from "@react-navigation/native"
 
 export default function Salas() {
   const [salasDisponiveis, setSalasDisponiveis] = useState([]);
@@ -27,13 +23,13 @@ export default function Salas() {
   const [diaSelecionado, setDiaSelecionado] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [horariosDisponiveis, setHorariosDisponiveis] = useState([]);
-  const [horarioSelecionado, setHorarioSelecionado] = useState(null);
+  const [horariosSelecionados, setHorariosSelecionados] = useState([]); // Agora é um ARRAY!
 
   const formatDate = (date) => {
     if (!date) return "";
     return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
   };
-  
+
   const formatDateForAPI = (date) => {
     if (!date) return "";
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
@@ -54,7 +50,7 @@ export default function Salas() {
     } catch (error) {
       console.log(
         "Erro ao buscar salas disponíveis:",
-        error.response.data.error
+        error.response?.data?.error || error.message
       );
       setSalasDisponiveis([]);
     }
@@ -71,9 +67,12 @@ export default function Salas() {
       const salaHorarios = response.data.salas.find(
         (s) => s.id_sala === sala.id_salas
       );
-      setHorariosDisponiveis(salaHorarios.horarios_disponiveis || []);
+      setHorariosDisponiveis(salaHorarios?.horarios_disponiveis || []);
     } catch (error) {
-      console.log(error.response.data.error);
+      console.log(
+        "Erro ao buscar horários disponíveis:",
+        error.response?.data?.error || error.message
+      );
       setHorariosDisponiveis([]);
     }
   }
@@ -90,51 +89,94 @@ export default function Salas() {
     if (currentDate) {
       setDiaSelecionado(currentDate);
       buscarSalasDisponiveis(currentDate);
+      // Limpa horários e sala selecionados ao mudar a data
+      setHorariosSelecionados([]);
+      setSalaSelecionada(null);
     }
   }
 
-  function selecionarHorario(horario) {
-    setHorarioSelecionado(horario);
-    setModalHorariosVisible(false);
-    setModalConfirmacaoVisible(true);
+  // NOVA FUNÇÃO: Recebe o array de horários selecionados do HorariosModal
+  function handleHorariosConfirmados(horarios) {
+    if (horarios.length === 0) {
+      Alert.alert("Atenção", "Nenhum horário foi selecionado.");
+      return;
+    }
+    setHorariosSelecionados(horarios); // Atualiza o estado com múltiplos horários
+    setModalHorariosVisible(false); // Fecha o modal de horários
+    setModalConfirmacaoVisible(true); // Abre o modal de confirmação
   }
 
-  async function criarNovaReserva() {
-    const [horaInicio, minutoInicio] = horarioSelecionado.inicio
-      .split(":")
-      .map(Number);
-    const horaFim = String(horaInicio + 1).padStart(2, "0");
+  // FUNÇÃO ATUALIZADA: Cria múltiplas reservas
+  async function criarMultiplasReservas() {
+    if (!salaSelecionada || !diaSelecionado || horariosSelecionados.length === 0) {
+      Alert.alert("Erro", "Dados incompletos para efetuar as reservas.");
+      return;
+    }
+
     const dataFormatada = formatDateForAPI(diaSelecionado);
-    try {
-      const usuarioLogado = await AsyncStorage.getItem("usuarioLogado");
-      const usuario = JSON.parse(usuarioLogado);
-      const reserva = {
-        id_usuario: usuario.id_usuario, //AsyncStorage
+    const usuarioLogado = await AsyncStorage.getItem("usuarioLogado");
+    const usuario = JSON.parse(usuarioLogado);
+
+    if (!usuario || !usuario.id_usuario) {
+      Alert.alert("Erro", "Usuário não logado. Por favor, faça login novamente.");
+      return;
+    }
+
+    let reservasComSucesso = 0;
+    let reservasComErro = 0;
+    const mensagensErro = [];
+
+    // Itera sobre cada horário selecionado
+    for (const horario of horariosSelecionados) {
+      const [horaInicio, minutoInicio] = horario.inicio.split(":").map(Number);
+      const horaFim = String(horaInicio + 1).padStart(2, "0");
+      const minutoFim = String(minutoInicio).padStart(2, "0"); // Manteve o minuto para o fim
+
+      const reservaPayload = {
+        id_usuario: usuario.id_usuario,
         fkid_salas: salaSelecionada.id_salas,
         data_reserva: dataFormatada,
-        horario_inicio: `${horarioSelecionado.inicio}:00`,
-        horario_fim: `${horaFim}:${String(minutoInicio).padStart(2, "0")}:00`,
+        horario_inicio: `${horario.inicio}:00`, // Garante segundos
+        horario_fim: `${horaFim}:${minutoFim}:00`, // Garante segundos
       };
 
-      const response = await api.criarReserva(reserva);
-      Alert.alert(response.data.message);
-      setModalConfirmacaoVisible(false);
-      setSalaSelecionada(null);
-      setDiaSelecionado(null);
-      setHorariosDisponiveis([]);
-      setHorarioSelecionado(null);
-    } catch (error) {
-      console.log(error.response.data.error);
-      Alert.alert(error.response.data.error);
+      try {
+        await api.criarReserva(reservaPayload);
+        reservasComSucesso++;
+      } catch (error) {
+        reservasComErro++;
+        const errorMessage = error.response?.data?.error || "Erro desconhecido ao reservar um horário.";
+        mensagensErro.push(`Erro ao reservar ${horario.inicio}: ${errorMessage}`);
+        console.log(`Erro ao reservar ${horario.inicio}:`, errorMessage);
+      }
+    }
+
+    setModalConfirmacaoVisible(false); // Fecha o modal de confirmação
+
+    // Limpa todos os estados para recomeçar o processo
+    setSalaSelecionada(null);
+    setDiaSelecionado(null);
+    setSalasDisponiveis([]);
+    setHorariosDisponiveis([]);
+    setHorariosSelecionados([]);
+
+    // Mensagem de feedback final
+    if (reservasComSucesso > 0 && reservasComErro === 0) {
+      Alert.alert("Sucesso!", `Todas as ${reservasComSucesso} reservas foram criadas com sucesso!`);
+    } else if (reservasComSucesso > 0 && reservasComErro > 0) {
+      Alert.alert(
+        "Reservas Concluídas (com avisos)",
+        `Foram criadas ${reservasComSucesso} reservas com sucesso. ${reservasComErro} reservas falharam:\n\n${mensagensErro.join('\n')}`
+      );
+    } else {
+      Alert.alert("Erro", `Nenhuma reserva foi criada. Detalhes: \n${mensagensErro.join('\n')}`);
     }
   }
 
   return (
     <View style={styles.mainContainer}>
-      {/* Header da tela */}
-      <HeaderPrincipal/>
+      <HeaderPrincipal />
 
-      {/* Seção para selecionar a data */}
       <View style={styles.selectDateContainer}>
         <TouchableOpacity
           style={styles.selectDateButton}
@@ -142,7 +184,7 @@ export default function Salas() {
         >
           <Text style={styles.selectDateButtonText}>
             {diaSelecionado
-              ? `Selecionado: ${formatDate(diaSelecionado)}`
+              ? `Data Selecionada: ${formatDate(diaSelecionado)}`
               : "Escolher Data 📅"}
           </Text>
         </TouchableOpacity>
@@ -157,7 +199,6 @@ export default function Salas() {
         />
       )}
 
-      {/* Lista de salas disponíveis */}
       <View style={styles.container}>
         {!diaSelecionado ? (
           <Text style={styles.Messages}>
@@ -184,7 +225,7 @@ export default function Salas() {
         sala={salaSelecionada}
         dia={diaSelecionado}
         horarios={horariosDisponiveis}
-        onSelecionarHorario={selecionarHorario}
+        onConfirmarSelecao={handleHorariosConfirmados} // Novo prop para lidar com múltiplos horários
       />
 
       <ConfirmacaoModal
@@ -192,8 +233,8 @@ export default function Salas() {
         onClose={() => setModalConfirmacaoVisible(false)}
         sala={salaSelecionada}
         dia={diaSelecionado}
-        horario={horarioSelecionado}
-        onConfirmar={criarNovaReserva}
+        horarios={horariosSelecionados} // Passa o ARRAY de horários
+        onConfirmar={criarMultiplasReservas} // Função que cria múltiplas reservas
         onCancelar={() => setModalConfirmacaoVisible(false)}
       />
     </View>
@@ -204,19 +245,6 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: "#FF0000",
-  },
-  header: {
-    height: 70,
-    backgroundColor: "#D3D3D3",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 10,
-  },
-  logo: {
-    width: 250,
-    height: 500,
-    resizeMode: "contain",
   },
   selectDateContainer: {
     marginVertical: 15,

@@ -54,7 +54,7 @@ const ReservasByIdModal = ({ visible, onClose, reservas, onReservaDeletada }) =>
                   <View>
                     <Text>Nome da Sala: {reserva.nome_da_sala}</Text>
                     <Text>Data: {reserva.data_reserva}</Text>
-                    <Text>Horário: {reserva.horario_inicio}</Text>
+                    <Text>Horário: {reserva.horario_inicio} ás {reserva.horario_fim}</Text>
                   </View>
                   <TouchableOpacity
                     onPress={() => handleOpenConfirmDelete(reserva)}
