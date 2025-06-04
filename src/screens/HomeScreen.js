@@ -1,6 +1,8 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { handleLogout } from "../components/handleLogout";
+import { Alert } from "react-native";
 
 export default function Home({ navigation }) {
   return (
@@ -9,7 +11,11 @@ export default function Home({ navigation }) {
         <Text style={styles.headerText}>Página Home</Text>
         <TouchableOpacity
           style={styles.buttonContainer}
-          onPress={() => navigation.navigate("Login")}
+          // Chame a função handleLogout aqui e passe a instância 'navigation'
+          onPress={() => {
+            handleLogout(navigation);
+            Alert.alert("Sucesso", "Você foi desconectado com sucesso!");
+          }}
         >
           <Text style={styles.buttonText}>Sair</Text>
         </TouchableOpacity>

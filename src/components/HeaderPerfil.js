@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Image, StyleSheet, TouchableOpacity, Text } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { handleLogout } from "./handleLogout";
 
 
 const HeaderPerfil = () => {
@@ -21,7 +22,11 @@ const HeaderPerfil = () => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate("Login")}
+          // Chame a função handleLogout aqui e passe a instância 'navigation'
+          onPress={() => {
+            handleLogout(navigation);
+            Alert.alert("Sucesso", "Você foi desconectado com sucesso!");
+          }}
         >
           <Text style={styles.buttonText}>Sair</Text>
         </TouchableOpacity>

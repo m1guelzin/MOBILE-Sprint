@@ -29,6 +29,7 @@ const sheets = {
   getReservaById: (id_usuario) => api.get(`reservas/user/${id_usuario}`),
   atualizarUsuario: (dados) => api.put("user", dados),
   deletarReserva: (id_reserva) => api.delete(`reservas/${id_reserva}`),
+  deleteUser: (id_usuario) => api.delete(`user/${id_usuario}`),
 
 };
 

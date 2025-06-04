@@ -33,7 +33,7 @@ const ReservasByIdModal = ({ visible, onClose, reservas, onReservaDeletada }) =>
         }
         setReservaToDelete(null); // Limpe a reserva para deletar
       } catch (error) {
-        console.log("Erro ao deletar reserva:", error);
+        //console.log("Erro ao deletar reserva:", error);
         Alert.alert(
           "Erro",
           error.response?.data?.error || "Não foi possível cancelar a reserva."

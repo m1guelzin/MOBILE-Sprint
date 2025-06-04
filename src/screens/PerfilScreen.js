@@ -14,7 +14,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../axios/axios";
 import { useNavigation } from "@react-navigation/native";
 import ReservasByIdModal from "../components/ReservasByUserModal";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 const PerfilScreen = () => {
   const [usuario, setUsuario] = useState(null);
@@ -252,6 +251,7 @@ const PerfilScreen = () => {
             >
               <Text style={{ color: "white", fontSize: 16 }}>Editar Perfil</Text>
             </TouchableOpacity>
+            
           </>
         )}
       </View>
