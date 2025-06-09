@@ -12,8 +12,28 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../axios/axios";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, CommonActions } from "@react-navigation/native";
 import ReservasByIdModal from "../components/ReservasByUserModal";
+// Importe o novo componente
+import DeleteAccountButton from '../components/DeleteAccountButton'; // <--- VERIFIQUE O CAMINHO REAL
+
+// Função handleLogout. Se você já tem uma no '../utils/auth', use-a:
+// import { handleLogout } from '../utils/auth';
+const handleLogout = async (navigationInstance) => {
+  try {
+    await AsyncStorage.clear();
+    navigationInstance.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      })
+    );
+  } catch (error) {
+    console.error("Erro ao fazer logout:", error);
+    Alert.alert("Erro", "Não foi possível fazer logout. Tente novamente.");
+  }
+};
+
 
 const PerfilScreen = () => {
   const [usuario, setUsuario] = useState(null);
@@ -60,7 +80,7 @@ const PerfilScreen = () => {
       const usuarioArmazenado = await getUser();
       if (!usuarioArmazenado) {
         Alert.alert("Erro", "Usuário não encontrado. Redirecionando para login.");
-        navigation.navigate("Login");
+        handleLogout(navigation); // Usa handleLogout
         return;
       }
 
@@ -70,7 +90,7 @@ const PerfilScreen = () => {
 
       await carregarReservas();
     } catch (error) {
-      console.log (
+      console.log(
         "Erro ao carregar perfil:",
         error.response?.data?.message || error.message
       );
@@ -94,7 +114,7 @@ const PerfilScreen = () => {
           "Erro",
           "Sessão expirada ou inválida. Por favor, faça login novamente."
         );
-        navigation.navigate("Login");
+        handleLogout(navigation); 
         return;
       }
 
@@ -104,12 +124,15 @@ const PerfilScreen = () => {
         telefone: dadosEditados.telefone,
         email: dadosEditados.email,
         senha: dadosEditados.senha || usuarioArmazenado.senha,
-        cpf: usuarioArmazenado.cpf, // Mantém o CPF original não editável na tela
+        cpf: usuarioArmazenado.cpf,
       };
 
       await api.atualizarUsuario(payload);
 
-      setUsuario(dadosEditados);
+      const updatedUser = { ...usuarioArmazenado, ...dadosEditados };
+      await AsyncStorage.setItem("usuarioLogado", JSON.stringify(updatedUser));
+      setUsuario(updatedUser);
+      
       setModoEdicao(false);
       Alert.alert("Sucesso", "Dados atualizados com sucesso!");
     } catch (error) {
@@ -124,6 +147,8 @@ const PerfilScreen = () => {
       );
     }
   }
+
+  // --- Não precisamos mais da função deletarConta aqui! Ela está no componente DeleteAccountButton ---
 
   useEffect(() => {
     carregarPerfil();
@@ -162,7 +187,7 @@ const PerfilScreen = () => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.buttonHeader}
-            onPress={() => navigation.navigate("Login")}
+            onPress={() => handleLogout(navigation)}
           >
             <Text style={styles.buttonText}>Sair</Text>
           </TouchableOpacity>
@@ -202,7 +227,6 @@ const PerfilScreen = () => {
               placeholder="Telefone"
               keyboardType="phone-pad"
             />
-            {/* CPF REMOVIDO AQUI NO MODO DE EDIÇÃO */}
             <TextInput
               style={styles.input}
               value={dadosEditados.senha}
@@ -252,6 +276,10 @@ const PerfilScreen = () => {
               <Text style={{ color: "white", fontSize: 16 }}>Editar Perfil</Text>
             </TouchableOpacity>
             
+            {/* USE O COMPONENTE DeleteAccountButton AQUI */}
+            <DeleteAccountButton 
+              style={[styles.button, {marginTop: 15 }]} 
+            />
           </>
         )}
       </View>
@@ -268,12 +296,12 @@ const PerfilScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1, // Crucial para o ScrollView se esticar
+    flexGrow: 1,
     backgroundColor: "red",
     padding: 20,
-    alignItems: "stretch", // Garante que os filhos estiquem horizontalmente
-    justifyContent: 'space-between', // Distribui o espaço entre os elementos principais
-    paddingBottom: 50, // Espaço extra na parte inferior para rolagem
+    alignItems: "stretch",
+    justifyContent: 'space-between',
+    paddingBottom: 50,
   },
   loadingContainer: {
     flex: 1,
@@ -283,15 +311,15 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: "white",
-    padding: 30, // **Aumentado o padding**
+    padding: 30,
     borderRadius: 16,
     width: "100%",
     maxWidth: 500,
     alignSelf: "center",
-    marginTop: 20, // **Aumentado a margem superior**
-    marginBottom: 100, // **Adicionado margem inferior**
-    flexGrow: 1, // Permite que o card se estique
-    justifyContent: 'center', // Centraliza o conteúdo verticalmente dentro do card
+    marginTop: 20,
+    marginBottom: 100,
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   titleContainer: {
     backgroundColor: "white",
@@ -306,29 +334,38 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 22,
   },
-  fieldDisplay: { // Novo estilo para os campos de exibição
+  fieldDisplay: {
     backgroundColor: "#ddd",
-    padding: 25, // **Aumentado o padding**
+    padding: 25,
     borderRadius: 15,
-    marginBottom: 15, // **Aumentado a margem inferior**
+    marginBottom: 15,
     width: "100%",
   },
   input: {
     backgroundColor: "#ddd",
-    padding: 25, // **Aumentado o padding**
+    padding: 25,
     borderRadius: 15,
-    marginBottom: 15, // **Aumentado a margem inferior**
+    marginBottom: 15,
     width: "100%",
   },
   button: {
     backgroundColor: "red",
-    paddingVertical: 18, // **Aumentado o padding vertical**
+    paddingVertical: 18,
     paddingHorizontal: 20,
     borderRadius: 10,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 10, // **Aumentado a margem superior dos botões**
+    marginTop: 10,
+    marginBottom: 5,
+  },
+  buttondeleteacc: {
+    backgroundColor: "red",
+    paddingVertical: 12,
+    borderRadius: 10,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 5,
   },
   header: {
