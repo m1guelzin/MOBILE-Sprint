@@ -6,6 +6,7 @@ import Header from "./components/Header";
 import Salas from "./screens/SalasScreen";
 import Perfil from "./screens/PerfilScreen"
 
+
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
