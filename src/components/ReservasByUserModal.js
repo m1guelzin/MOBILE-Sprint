@@ -27,7 +27,7 @@ const ReservasByIdModal = ({ visible, onClose, reservas, onReservaDeletada }) =>
         Alert.alert("Sucesso", "Reserva cancelada com sucesso!");
         setConfirmDeleteModalVisible(false);
 
-        // Chame onReservaDeletada passando o ID da reserva deletada
+        // Chama onReservaDeletada passando o ID da reserva deletada
         if (onReservaDeletada) {
           onReservaDeletada(reservaToDelete.id_reserva);
         }
@@ -65,8 +65,6 @@ const ReservasByIdModal = ({ visible, onClose, reservas, onReservaDeletada }) =>
                 </View>
               ))
             ) : (
-              // >>> POTENCIAL CAUSA DO ERRO AQUI <<<
-              // Certifique-se de que "Você não possui reservas." está dentro de <Text>
               <Text>Você não possui reservas.</Text>
             )}
           </ScrollView>
@@ -84,8 +82,6 @@ const ReservasByIdModal = ({ visible, onClose, reservas, onReservaDeletada }) =>
           <View style={styles.confirmModalOverlay}>
             <View style={styles.confirmModalContent}>
               <Text style={styles.confirmTitle}>Confirmar Cancelamento</Text>
-              {/* >>> POTENCIAL CAUSA DO ERRO AQUI <<< */}
-              {/* Certifique-se de que "Tem certeza que deseja cancelar esta reserva?" está dentro de <Text> */}
               <Text style={styles.confirmText}>
                 Tem certeza que deseja cancelar esta reserva?
               </Text>

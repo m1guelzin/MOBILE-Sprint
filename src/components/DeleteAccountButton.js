@@ -5,8 +5,7 @@ import { useNavigation, CommonActions } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../axios/axios'; // Verifique se o caminho para o seu axios está correto
 
-// Função handleLogout. Se você já tem uma no '../utils/auth', use-a:
-// import { handleLogout } from '../utils/auth';
+
 const handleLogout = async (navigationInstance) => {
   try {
     await AsyncStorage.clear(); // Limpa todos os dados do AsyncStorage
@@ -27,7 +26,7 @@ const DeleteAccountButton = ({ style }) => {
   const navigation = useNavigation();
   const [confirmDeleteModalVisible, setConfirmDeleteModalVisible] = useState(false);
 
-  // Lógica para deletar a conta, agora chamada APÓS a confirmação do modal
+
   const handleDeleteAccountConfirmed = async () => {
     setConfirmDeleteModalVisible(false); // Fecha o modal de confirmação
 
@@ -37,7 +36,7 @@ const DeleteAccountButton = ({ style }) => {
       const userId = usuarioData?.id_usuario; 
 
       if (!userId) {
-        Alert.alert("Erro", "ID do usuário não encontrado para exclusão.");
+        Alert.alert("Erro", "Usuário não encontrado para exclusão.");
         return;
       }
 

@@ -65,12 +65,13 @@ const styles = StyleSheet.create({
   },
   body: {
     backgroundColor: "#D3D3D3",
-    width: 120,
-    height: 120,
+    width: 160,
+    height: 160,
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
     marginHorizontal: 10,
+    marginTop: -80,
   },
   icone: {
     width: 50,
@@ -79,7 +80,7 @@ const styles = StyleSheet.create({
   },
   text: {
     marginTop: 5,
-    fontSize: 14,
+    fontSize: 22,
     fontWeight: "bold",
     textAlign: "center",
   },
@@ -100,9 +101,9 @@ const styles = StyleSheet.create({
     marginLeft: 50,
   },
   buttonContainer: {
-    backgroundColor: "#D32F2F",
+    backgroundColor: "red",
     paddingVertical: 8,
-    paddingHorizontal: 15,
+    paddingHorizontal: 16,
     borderRadius: 5,
   },
   buttonText: {

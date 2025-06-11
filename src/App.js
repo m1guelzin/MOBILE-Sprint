@@ -5,8 +5,6 @@ import TelaInicial from "./screens/Telainicial";
 import Header from "./components/Header";
 import Salas from "./screens/SalasScreen";
 import Perfil from "./screens/PerfilScreen"
-import HeaderPerfil from "./components/HeaderPerfil"
-
 
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";

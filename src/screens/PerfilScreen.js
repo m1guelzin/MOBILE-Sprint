@@ -14,16 +14,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../axios/axios";
 import { useNavigation, CommonActions } from "@react-navigation/native";
 import ReservasByIdModal from "../components/ReservasByUserModal";
-// Importe o novo componente
 import DeleteAccountButton from '../components/DeleteAccountButton'; // <--- VERIFIQUE O CAMINHO REAL
 
-// Função handleLogout. Se você já tem uma no '../utils/auth', use-a:
-// import { handleLogout } from '../utils/auth';
 const handleLogout = async (navigationInstance) => {
   try {
     await AsyncStorage.clear();
-    navigationInstance.dispatch(
-      CommonActions.reset({
+    navigationInstance.dispatch( // reinicia a navegação do aplicativo
+      CommonActions.reset({ // novo estado de navegação
         index: 0,
         routes: [{ name: 'Login' }],
       })
@@ -62,10 +59,10 @@ const PerfilScreen = () => {
         setReservas(response.data.reservas || []);
       }
     } catch (error) {
-      console.log(
-        "Erro ao carregar reservas:",
-        error.response?.data?.message || error.message
-      );
+      //console.log(
+      //  "Erro ao carregar reservas:",
+      //  error.response?.data?.message || error.message
+      //);
     }
   }, []);
 
@@ -147,8 +144,6 @@ const PerfilScreen = () => {
       );
     }
   }
-
-  // --- Não precisamos mais da função deletarConta aqui! Ela está no componente DeleteAccountButton ---
 
   useEffect(() => {
     carregarPerfil();
@@ -276,9 +271,9 @@ const PerfilScreen = () => {
               <Text style={{ color: "white", fontSize: 16 }}>Editar Perfil</Text>
             </TouchableOpacity>
             
-            {/* USE O COMPONENTE DeleteAccountButton AQUI */}
+            
             <DeleteAccountButton 
-              style={[styles.button, {marginTop: 15 }]} 
+              style={[styles.buttondeleteacc, {marginTop: 25 }]} 
             />
           </>
         )}
